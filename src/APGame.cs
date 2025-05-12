@@ -46,7 +46,7 @@ public class APGame : IPart
 
             APEventData.Clear();
 
-            if (!APSession.Connect(new Uri(Data.Host), Data.Name, Data.Password, out SlotData, out string[] errors))
+            if (!APSession.Connect(Data.Host, Data.Name, Data.Password, out SlotData, out string[] errors))
             {
                 GameLog.LogError($"Couldn't connect to the archipelago server:\n\n{string.Join("\n", errors)}", true);
                 return false;
@@ -90,7 +90,7 @@ public class APGame : IPart
 
         host = Popup.AskString(
             "Archipelago host?",
-            Default: Data.Host ?? "ws://localhost:38281",
+            Default: Data.Host ?? "localhost:38281",
             ReturnNullForEscape: true
         );
 

@@ -19,13 +19,13 @@ public static class APSession
     private static object _messageLog;
     private static object _roomState;
 
-    public static bool Connect(Uri host, string name, string password, out Dictionary<string, object> slotData, out string[] errors)
+    public static bool Connect(string host, string name, string password, out Dictionary<string, object> slotData, out string[] errors)
     {
         _name = name;
         _password = password;
 
         var sessionFactory = _assembly.GetType("Archipelago.MultiClient.Net.ArchipelagoSessionFactory");
-        _session = sessionFactory.GetMethod("CreateSession", new Type[] { typeof(Uri) }).Invoke(null, new[] { host });
+        _session = sessionFactory.GetMethod("CreateSession", new Type[] { typeof(string), typeof(int) }).Invoke(null, new[] { host, null });
         _socket = _session.GetType().GetProperty("Socket").GetValue(_session);
         _items = _session.GetType().GetProperty("Items").GetValue(_session);
         _locations = _session.GetType().GetProperty("Locations").GetValue(_session);
