@@ -23,7 +23,16 @@ public static class Items
 {
     public static void HandleReceivedItem(Item item)
     {
-        Popup.Show(GameLog.FormatGameplay($"Received {item.Name}"), LogMessage: true);
+        if (The.Player.OnWorldMap())
+        {
+            if (item.Name == "Spawn Creature Trap" || item.Name == "Bomb Trap" || item.Name == "Double Bomb Trap")
+            {
+                The.Player.GetPart<APEventsProcessor>().DelayItemProcessing(item);
+                return;
+            }
+        }
+
+        Popup.Show(GameLog.FormatGameplay($"Received '{item.Name}'"), LogMessage: true);
 
         switch (item.Name)
         {
@@ -85,12 +94,7 @@ public static class Items
             }
         }
 
-        GameLog.LogError($"Unknown item {item.Name} with id {item.Id}");
-    }
-
-    private static string FormatError(object message)
-    {
-        throw new System.NotImplementedException();
+        GameLog.LogError($"Unknown item '{item.Name}' with id {item.Id}");
     }
 
     private static void BombTrap()

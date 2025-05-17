@@ -77,12 +77,16 @@ public static class APEvents
     }
 }
 
-
 public class APEventsProcessor : IPart
 {
+    // TODO: Save this with the game to avoid skipping when saving and quitting on the world map
+    private readonly Queue<Item> _deferredItems = new();
+
     public override bool WantEvent(int ID, int cascade)
     {
         if (ID == BeforeRenderEvent.ID)
+            return true;
+        if (ID == ZoneActivatedEvent.ID)
             return true;
 
         return base.WantEvent(ID, cascade);
@@ -93,6 +97,19 @@ public class APEventsProcessor : IPart
         var aps = The.Player.GetPart<APGame>();
         ProcessMessages(aps);
         ProcessReceivedItems(aps);
+
+        return true;
+    }
+
+    public override bool HandleEvent(ZoneActivatedEvent E)
+    {
+        if (!E.Zone.IsWorldMap())
+        {
+            while (_deferredItems.TryDequeue(out Item item))
+            {
+                Items.HandleReceivedItem(item);
+            }
+        }
 
         return true;
     }
@@ -130,5 +147,11 @@ public class APEventsProcessor : IPart
 
             aps.Data.ItemIndex = item.Index;
         }
+    }
+
+    public void DelayItemProcessing(Item item)
+    {
+        GameLog.LogDebug($"Receiving of '{item.Name}' delayed until exiting the world map");
+        _deferredItems.Enqueue(item);
     }
 }
