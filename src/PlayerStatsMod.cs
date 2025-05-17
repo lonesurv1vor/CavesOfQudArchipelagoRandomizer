@@ -113,7 +113,7 @@ public class PlayerStatsMod : IPart
         var leveler = ParentObject.GetPart<Leveler>();
         if (!ParentObject.IsEsper())
         {
-            Leveler.RapidAdvancement(1, ParentObject);
+            Leveler.RapidAdvancement(3, ParentObject);
             GameLog.LogGameplay($"Received a rapid mutation advancement!");
         }
         else
