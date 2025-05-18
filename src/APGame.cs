@@ -2,74 +2,119 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
+using XRL;
 using XRL.UI;
 using XRL.World;
 
 [Serializable]
-public class PersistentData
+public class PersistentData : IComposite
 {
+    // TODO give these private setters
+
     public string Host;
     public string Name;
     public string Password;
+    public bool LastConnectionSuccessful = false;
     public string Seed;
 
+    public int Goal;
+    public int MaxLevel;
+    public int LocationsPerLevel;
+
     public int ItemIndex = 0;
+    [NonSerialized] // Custom as Queue does not support Json serialization
+    public Queue<Item> DelayedItems = new();
     public Dictionary<string, Location> Locations = new();
+
+    public void Write(SerializationWriter Writer)
+    {
+        List<Item> list = new(DelayedItems);
+        Writer.Write(list);
+    }
+
+    public void Read(SerializationReader Reader)
+    {
+        List<Item> list = Reader.ReadList<Item>();
+        DelayedItems = new(list);
+    }
+}
+
+public static class APLocalOptions
+{
+    public static bool DelayTrapsInSettlements => Options.GetOptionBool("lonesurv1vor_archipelago_OptionDelayTrapsInSettlements");
+    public static bool PopupOnReceivedItem => Options.GetOptionBool("lonesurv1vor_archipelago_OptionPopupOnReceivedItem");
+    public static bool PopupOnReceivedTrap => Options.GetOptionBool("lonesurv1vor_archipelago_OptionPopupOnReceivedTrap");
 }
 
 [Serializable]
 public class APGame : IPart
 {
-    [SerializeField]
+    public static APGame Instance => The.Player.GetPart<APGame>();
     public PersistentData Data = new();
-    [NonSerialized]
-    private Dictionary<string, object> SlotData = new();
 
-    public int Goal { get; private set; }
-    public int MaxLevel { get; private set; }
-    public int LocationsPerLevel { get; private set; }
+    public override bool WantEvent(int ID, int cascade)
+    {
+        if (ID == BeforeRenderEvent.ID || ID == ZoneActivatedEvent.ID)
+            return true;
+
+        return base.WantEvent(ID, cascade);
+    }
 
     public bool Setup()
     {
         try
         {
-            if (!AskConnectionInfo(out string host, out string name, out string password))
+            Dictionary<string, object> slotData = new();
+
+            while (true)
             {
-                Popup.Show("Missing connection info");
-                return false;
+                APSession.Disconnect();
+                APEvents.ClearEvents();
+
+                if (!Data.LastConnectionSuccessful)
+                {
+                    if (!AskConnectionInfo(out string host, out string name, out string password))
+                    {
+                        Popup.Show("Missing connection info");
+                        return false;
+                    }
+
+                    Data.Host = host;
+                    Data.Name = name;
+                    Data.Password = password;
+                }
+
+                Data.LastConnectionSuccessful = APSession.Connect(Data.Host, Data.Name, Data.Password, out slotData, out string[] errors);
+
+                if (!Data.LastConnectionSuccessful)
+                {
+                    GameLog.LogError($"Couldn't connect to the archipelago server:\n\n{string.Join("\n", errors)}", true);
+                    continue;
+                }
+
+                if (Data.Seed != null && Data.Seed != APSession.Seed)
+                {
+                    Data.LastConnectionSuccessful = false;
+                    GameLog.LogError("Incompatible Save: The connected rooms seed has changed. This save game has been used for a different room and is not compatible.", true);
+                    continue;
+                }
+
+                break;
             }
 
-            Data.Host = host;
-            Data.Name = name;
-            Data.Password = password;
-
-            APEventData.Clear();
-
-            if (!APSession.Connect(Data.Host, Data.Name, Data.Password, out SlotData, out string[] errors))
-            {
-                GameLog.LogError($"Couldn't connect to the archipelago server:\n\n{string.Join("\n", errors)}", true);
-                return false;
-            }
-
-            if (Data.Seed != null && Data.Seed != APSession.Seed)
-            {
-                GameLog.LogError("Incompatible Save: The connected room seed has changed. This save game has been used for a different room and is not compatible.", true);
-                return false;
-            }
             Data.Seed = APSession.Seed;
 
-            if (!SlotData.TryGetValue("goal", out object goal)
-                || !SlotData.TryGetValue("max_level", out object maxLevel)
-                || !SlotData.TryGetValue("locations_per_level", out object locationsPerLevel))
+            if (!slotData.TryGetValue("goal", out object goal)
+                || !slotData.TryGetValue("max_level", out object maxLevel)
+                || !slotData.TryGetValue("locations_per_level", out object locationsPerLevel))
             {
                 GameLog.LogError("Couldn't fill slot data", true);
                 return false;
             }
 
-            Goal = (int)(long)goal;
-            MaxLevel = (int)(long)maxLevel;
-            LocationsPerLevel = (int)(long)locationsPerLevel;
+            Data.Goal = (int)(long)goal;
+            Data.MaxLevel = (int)(long)maxLevel;
+            Data.LocationsPerLevel = (int)(long)locationsPerLevel;
 
             SyncLocations();
         }
@@ -84,7 +129,6 @@ public class APGame : IPart
 
     private bool AskConnectionInfo(out string host, out string name, out string password)
     {
-        host = null;
         name = null;
         password = null;
 
@@ -112,13 +156,10 @@ public class APGame : IPart
             ReturnNullForEscape: true
         );
 
-        return true;
-    }
+        if (password == null)
+            return false;
 
-    public void End()
-    {
-        APEventData.Clear();
-        APSession.Disconnect();
+        return true;
     }
 
     public void CheckLocation(Location loc)
@@ -169,6 +210,62 @@ public class APGame : IPart
         catch (Exception e)
         {
             GameLog.DisplayException(e);
+        }
+    }
+
+    public override bool HandleEvent(BeforeRenderEvent E)
+    {
+        ProcessMessages();
+        ProcessReceivedItems();
+
+        return true;
+    }
+
+    public override bool HandleEvent(ZoneActivatedEvent E)
+    {
+        if (!E.Zone.IsWorldMap() && (!APLocalOptions.DelayTrapsInSettlements || !E.Zone.IsCheckpoint()))
+        {
+            while (Data.DelayedItems.TryDequeue(out Item item))
+            {
+                Items.HandleReceivedItem(item);
+            }
+        }
+
+        return true;
+    }
+
+    private void ProcessMessages()
+    {
+        while (APEvents.Messages.TryDequeue(out QueuedLogMessage m))
+        {
+            if (m.Popup)
+            {
+                Popup.Show(m.Message, LogMessage: true);
+            }
+            else
+            {
+                XRL.Messages.MessageQueue.AddPlayerMessage(m.Message);
+            }
+        }
+    }
+
+    private void ProcessReceivedItems()
+    {
+        while (APEvents.ReceivedItems.TryDequeue(out Item item))
+        {
+            if (item.Index < Data.ItemIndex)
+            {
+                return;
+            }
+            else if (item.Index == Data.ItemIndex)
+            {
+                GameLog.LogDebug($"Skipped all processed items up to index {item.Index}");
+                return;
+            }
+
+            Items.HandleReceivedItem(item);
+
+            Data.ItemIndex = item.Index;
         }
     }
 }

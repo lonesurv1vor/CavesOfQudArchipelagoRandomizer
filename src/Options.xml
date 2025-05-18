@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<options>
+  <option ID="lonesurv1vor_archipelago_OptionPopupOnReceivedItem" DisplayText="Show popup on item"
+    Category="Archipelago" Type="Checkbox" Default="Yes" />
+  <option ID="lonesurv1vor_archipelago_OptionPopupOnReceivedTrap" DisplayText="Show popup on trap"
+    Category="Archipelago" Type="Checkbox" Default="Yes" />
+  <option ID="lonesurv1vor_archipelago_OptionDelayTrapsInSettlements" DisplayText="Delay traps when in settlement"
+    Category="Archipelago" Type="Checkbox" Default="No" />
+</options>

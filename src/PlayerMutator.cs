@@ -7,7 +7,6 @@ public class APPlayerMutator : IPlayerMutator
     public void mutate(GameObject player)
     {
         var apg = player.RequirePart<APGame>();
-        apg.End();
 
         if (!apg.Setup())
         {
@@ -18,7 +17,6 @@ public class APPlayerMutator : IPlayerMutator
             return;
         }
 
-        player.RequirePart<APEventsProcessor>();
         player.RequirePart<PlayerStatsMod>();
         player.RequirePart<PlayerQuestMod>();
     }
@@ -32,7 +30,6 @@ public class APLoadGameHandler
     public static void OnGameLoaded()
     {
         var apg = The.Player.RequirePart<APGame>();
-        apg.End();
 
         if (!apg.Setup())
         {
@@ -43,7 +40,6 @@ public class APLoadGameHandler
             return;
         }
 
-        The.Player.RequirePart<APEventsProcessor>();
         The.Player.RequirePart<PlayerStatsMod>();
         The.Player.RequirePart<PlayerQuestMod>();
     }

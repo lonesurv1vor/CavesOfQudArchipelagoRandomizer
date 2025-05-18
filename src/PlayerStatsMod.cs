@@ -12,29 +12,27 @@ public class PlayerStatsMod : IPart
 
     public override bool HandleEvent(AwardedXPEvent E)
     {
-        var aps = The.Player.GetPart<APGame>();
-
         Dictionary<int, string> xpTable = new();
-        for (int level = 1; level < aps.MaxLevel; level++)
+        for (int level = 1; level < APGame.Instance.Data.MaxLevel; level++)
         {
             var curXP = Leveler.GetXPForLevel(level);
             var diffXP = Leveler.GetXPForLevel(level + 1) - curXP;
-            for (int step = 0; step < aps.LocationsPerLevel; step++)
+            for (int step = 0; step < APGame.Instance.Data.LocationsPerLevel; step++)
             {
                 if (level == 0 && step == 1)
                     continue;
 
-                var stepXP = curXP + diffXP * step / aps.LocationsPerLevel;
+                var stepXP = curXP + diffXP * step / APGame.Instance.Data.LocationsPerLevel;
                 xpTable.Add(stepXP, $"Level {level}.{step}");
             }
         }
-        xpTable.Add(Leveler.GetXPForLevel(aps.MaxLevel), $"{aps.MaxLevel}.0");
+        xpTable.Add(Leveler.GetXPForLevel(APGame.Instance.Data.MaxLevel), $"{APGame.Instance.Data.MaxLevel}.0");
 
         foreach (var (xp, loc) in xpTable)
         {
             if (xp > E.AmountBefore && xp <= E.AmountBefore + E.Amount)
             {
-                aps.CheckLocation(aps.Data.Locations[loc]);
+                APGame.Instance.CheckLocation(APGame.Instance.Data.Locations[loc]);
             }
         }
 

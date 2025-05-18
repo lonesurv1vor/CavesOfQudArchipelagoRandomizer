@@ -32,8 +32,6 @@ public static class APSession
         _messageLog = _session.GetType().GetProperty("MessageLog").GetValue(_session);
         _roomState = _session.GetType().GetProperty("RoomState").GetValue(_session);
 
-        AddEventHandlers();
-
         return Reconnect(out slotData, out errors);
     }
 
@@ -102,6 +100,9 @@ public static class APSession
 
     public static bool Reconnect(out Dictionary<string, object> slotData, out string[] errors)
     {
+        Disconnect();
+        AddEventHandlers();
+
         var loginResult = _session.GetType().GetMethod("TryConnectAndLogin").Invoke(_session, new object[] { "Caves of Qud", _name, 7, null, null, null, _password, true });
 
         if (loginResult.GetType().Name == "LoginFailure")
@@ -120,6 +121,8 @@ public static class APSession
 
     public static void Disconnect()
     {
+        RemoveEventHandlers();
+
         if (Connected)
         {
             // TODO unregister helpers here
@@ -137,38 +140,70 @@ public static class APSession
         _session.GetType().GetMethod("SetGoalAchieved").Invoke(_session, null);
     }
 
+    // private static Delegate _packetReceivedDelegate;
+    private static Delegate _onMessageReceivedDelegate;
+    private static Delegate _itemReceivedDelegate;
+    private static Delegate _errorReceivedDelegate;
+
     private static void AddEventHandlers()
     {
         // {
         //     var ev = _socket.GetType().GetEvent("PacketReceived");
-        //     var del = Delegate.CreateDelegate(ev.EventHandlerType, this,
+        //     _packetReceivedDelegate = Delegate.CreateDelegate(ev.EventHandlerType, this,
         //         typeof(APSession).GetMethod("OnPacketReceived",
         //         BindingFlags.Instance | BindingFlags.NonPublic));
-        //     ev.AddEventHandler(_socket, del);
+        //     ev.AddEventHandler(_socket, _packetReceivedDelegate);
         // }
 
         {
             var ev = _messageLog.GetType().GetEvent("OnMessageReceived");
-            var del = Delegate.CreateDelegate(ev.EventHandlerType, null,
+            _onMessageReceivedDelegate = Delegate.CreateDelegate(ev.EventHandlerType, null,
                 typeof(APSession).GetMethod("OnMessageReceived",
                 BindingFlags.Static | BindingFlags.NonPublic));
-            ev.AddEventHandler(_messageLog, del);
+            ev.AddEventHandler(_messageLog, _onMessageReceivedDelegate);
         }
 
         {
             var ev = _items.GetType().GetEvent("ItemReceived");
-            var del = Delegate.CreateDelegate(ev.EventHandlerType, null,
+            _itemReceivedDelegate = Delegate.CreateDelegate(ev.EventHandlerType, null,
                 typeof(APSession).GetMethod("OnItemReceived",
                 BindingFlags.Static | BindingFlags.NonPublic));
-            ev.AddEventHandler(_items, del);
+            ev.AddEventHandler(_items, _itemReceivedDelegate);
         }
 
         {
             var ev = _socket.GetType().GetEvent("ErrorReceived");
-            var del = Delegate.CreateDelegate(ev.EventHandlerType, null,
+            _errorReceivedDelegate = Delegate.CreateDelegate(ev.EventHandlerType, null,
                 typeof(APSession).GetMethod("OnSocketErrorReceived",
                 BindingFlags.Static | BindingFlags.NonPublic));
-            ev.AddEventHandler(_socket, del);
+            ev.AddEventHandler(_socket, _errorReceivedDelegate);
+        }
+    }
+
+    private static void RemoveEventHandlers()
+    {
+        if (_session == null)
+        {
+            return;
+        }
+        // {
+        //     var ev = _messageLog.GetType().GetEvent("OnMessageReceived");
+        //     ev.RemoveEventHandler(_messageLog, _packetReceivedDelegate);
+        // }
+
+        {
+            var ev = _messageLog.GetType().GetEvent("OnMessageReceived");
+            ev.RemoveEventHandler(_messageLog, _onMessageReceivedDelegate);
+        }
+
+        {
+            var ev = _items.GetType().GetEvent("ItemReceived");
+            ev.RemoveEventHandler(_items, _itemReceivedDelegate);
+        }
+
+        {
+            var ev = _socket.GetType().GetEvent("ErrorReceived");
+            ev.RemoveEventHandler(_socket, _errorReceivedDelegate);
         }
     }
 

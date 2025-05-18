@@ -52,25 +52,34 @@ public static class GameLog
         return res;
     }
 
-    public static void LogGameplay(string message)
+    public static void LogGameplay(string message, bool popup = false)
     {
-        XRL.Messages.MessageQueue.AddPlayerMessage(GameLog.FormatGameplay(message));
+        var fmsg = FormatGameplay(message);
+        if (popup)
+        {
+            Popup.Show(fmsg, LogMessage: true);
+        }
+        else
+        {
+            XRL.Messages.MessageQueue.AddPlayerMessage(fmsg);
+        }
     }
 
     public static void LogDebug(string message)
     {
-        XRL.Messages.MessageQueue.AddPlayerMessage(GameLog.FormatDebug(message));
+        XRL.Messages.MessageQueue.AddPlayerMessage(FormatDebug(message));
     }
 
     public static void LogError(string message, bool popup = false)
     {
+        var fmsg = FormatError(message);
         if (popup)
         {
-            Popup.Show(FormatError(message), LogMessage: true);
+            Popup.Show(fmsg, LogMessage: true);
         }
         else
         {
-            XRL.Messages.MessageQueue.AddPlayerMessage(FormatError(message));
+            XRL.Messages.MessageQueue.AddPlayerMessage(fmsg);
         }
     }
 

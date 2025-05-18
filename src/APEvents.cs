@@ -1,30 +1,24 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using XRL;
-using XRL.UI;
-using XRL.World;
 
-
-public static class APEventData
-{
-    public static ConcurrentQueue<QueuedLogMessage> Messages = new();
-    public static ConcurrentQueue<Item> ReceivedItems = new();
-
-    public static void Clear()
-    {
-        Messages.Clear();
-        ReceivedItems.Clear();
-    }
-}
 
 // Everything in here happens in separate thread outside of the game loop
 // - it is not allowed to access the games global objects from here directly
 public static class APEvents
 {
+    public static ConcurrentQueue<QueuedLogMessage> Messages = new();
+    public static ConcurrentQueue<Item> ReceivedItems = new();
+
+    public static void ClearEvents()
+    {
+        Messages.Clear();
+        ReceivedItems.Clear();
+    }
+
     public static void OnPacketReceived(string message)
     {
-        APEventData.Messages.Enqueue(
+        Messages.Enqueue(
             new QueuedLogMessage { Message = GameLog.FormatServer(message), Popup = false }
         );
     }
@@ -39,7 +33,7 @@ public static class APEvents
                 message += GameLog.ApplyAPColor(text, color, isBackground);
             }
 
-            APEventData.Messages.Enqueue(
+            Messages.Enqueue(
                 new QueuedLogMessage { Message = GameLog.FormatServer(message), Popup = false }
             );
         }
@@ -53,7 +47,7 @@ public static class APEvents
     {
         try
         {
-            APEventData.ReceivedItems.Enqueue(new Item(name, id, index));
+            ReceivedItems.Enqueue(new Item(name, id, index));
         }
         catch (Exception e)
         {
@@ -73,85 +67,6 @@ public static class APEvents
 
     private static void AddErrorMessage(string message, bool popup)
     {
-        APEventData.Messages.Enqueue(new QueuedLogMessage { Message = GameLog.FormatError(message), Popup = popup });
-    }
-}
-
-public class APEventsProcessor : IPart
-{
-    // TODO: Save this with the game to avoid skipping when saving and quitting on the world map
-    private readonly Queue<Item> _deferredItems = new();
-
-    public override bool WantEvent(int ID, int cascade)
-    {
-        if (ID == BeforeRenderEvent.ID)
-            return true;
-        if (ID == ZoneActivatedEvent.ID)
-            return true;
-
-        return base.WantEvent(ID, cascade);
-    }
-
-    public override bool HandleEvent(BeforeRenderEvent E)
-    {
-        var aps = The.Player.GetPart<APGame>();
-        ProcessMessages(aps);
-        ProcessReceivedItems(aps);
-
-        return true;
-    }
-
-    public override bool HandleEvent(ZoneActivatedEvent E)
-    {
-        if (!E.Zone.IsWorldMap())
-        {
-            while (_deferredItems.TryDequeue(out Item item))
-            {
-                Items.HandleReceivedItem(item);
-            }
-        }
-
-        return true;
-    }
-
-    private void ProcessMessages(APGame aps)
-    {
-        while (APEventData.Messages.TryDequeue(out QueuedLogMessage m))
-        {
-            if (m.Popup)
-            {
-                Popup.Show(m.Message, LogMessage: true);
-            }
-            else
-            {
-                XRL.Messages.MessageQueue.AddPlayerMessage(m.Message);
-            }
-        }
-    }
-
-    private void ProcessReceivedItems(APGame aps)
-    {
-        while (APEventData.ReceivedItems.TryDequeue(out Item item))
-        {
-            if (item.Index < aps.Data.ItemIndex)
-            {
-                return;
-            }
-            else if (item.Index == aps.Data.ItemIndex)
-            {
-                GameLog.LogDebug($"Skipped all processed items up to index {item.Index}");
-                return;
-            }
-
-            Items.HandleReceivedItem(item);
-
-            aps.Data.ItemIndex = item.Index;
-        }
-    }
-
-    public void DelayItemProcessing(Item item)
-    {
-        GameLog.LogDebug($"Receiving of '{item.Name}' delayed until exiting the world map");
-        _deferredItems.Enqueue(item);
+        Messages.Enqueue(new QueuedLogMessage { Message = GameLog.FormatError(message), Popup = popup });
     }
 }

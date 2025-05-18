@@ -1,15 +1,21 @@
 using Qud.API;
 using XRL;
+using XRL.World;
 using XRL.World.Parts.Skill;
 using UnityEngine;
 using GameObject = XRL.World.GameObject;
-using XRL.UI;
+using System.Globalization;
 
-public class Item
+
+[System.Serializable]
+public class Item : IComposite
 {
     public string Name;
     public long Id;
     public int Index;
+
+    // Needed for deserialization
+    private Item() { }
 
     public Item(string name, long id, int index)
     {
@@ -23,16 +29,27 @@ public static class Items
 {
     public static void HandleReceivedItem(Item item)
     {
-        if (The.Player.OnWorldMap())
+        if (item.Name.Contains("trap", CompareOptions.IgnoreCase))
         {
-            if (item.Name == "Spawn Creature Trap" || item.Name == "Bomb Trap" || item.Name == "Double Bomb Trap")
+            if (The.Player.OnWorldMap())
             {
-                The.Player.GetPart<APEventsProcessor>().DelayItemProcessing(item);
+                APGame.Instance.Data.DelayedItems.Enqueue(item);
+                GameLog.LogDebug($"Receive of '{item.Name}' delayed until exiting the world map");
                 return;
             }
-        }
+            else if (APLocalOptions.DelayTrapsInSettlements && The.Player.CurrentZone.IsCheckpoint())
+            {
+                APGame.Instance.Data.DelayedItems.Enqueue(item);
+                GameLog.LogDebug($"Receive of '{item.Name}' delayed until exiting the settlement");
+                return;
+            }
 
-        Popup.Show(GameLog.FormatGameplay($"Received '{item.Name}'"), LogMessage: true);
+            GameLog.LogGameplay($"{{{{|&RReceived '{item.Name}'}}}}", APLocalOptions.PopupOnReceivedTrap);
+        }
+        else
+        {
+            GameLog.LogGameplay($"Received '{item.Name}'", APLocalOptions.PopupOnReceivedItem);
+        }
 
         switch (item.Name)
         {
