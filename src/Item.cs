@@ -5,6 +5,10 @@ using XRL.World.Parts.Skill;
 using UnityEngine;
 using GameObject = XRL.World.GameObject;
 using System.Globalization;
+using System.IO;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using System.Linq;
 
 
 [System.Serializable]
@@ -23,13 +27,72 @@ public class Item : IComposite
         Id = id;
         Index = index;
     }
+
+    public bool IsTrap()
+    {
+        if (!Items.StaticItemDefinitions.ContainsKey(Name))
+        {
+            return false;
+        }
+        var def = Items.StaticItemDefinitions[Name];
+        return def != null && def.Category == "trap";
+    }
+
+    public bool IsItem()
+    {
+        if (!Items.StaticItemDefinitions.ContainsKey(Name))
+        {
+            return false;
+        }
+        var def = Items.StaticItemDefinitions[Name];
+        return def != null && def.Type == "item";
+    }
+
+    public bool IsLiquid()
+    {
+        if (!Items.StaticItemDefinitions.ContainsKey(Name))
+        {
+            return false;
+        }
+        var def = Items.StaticItemDefinitions[Name];
+        return def != null && def.Type == "liquid";
+    }
+
+    public string Blueprint()
+    {
+        return Items.StaticItemDefinitions[Name]?.Blueprint;
+    }
+
+    public int Amount()
+    {
+        return Items.StaticItemDefinitions[Name]?.Amount ?? 1;
+    }
+}
+
+[System.Serializable]
+public class StaticItemDef
+{
+    public string Name;
+    public string Category;
+    public string Type;
+    public int Amount;
+    public string Blueprint;
 }
 
 public static class Items
 {
+    public static readonly Dictionary<string, StaticItemDef> StaticItemDefinitions = LoadStaticItemDefs();
+
+    private static Dictionary<string, StaticItemDef> LoadStaticItemDefs()
+    {
+        string json = File.ReadAllText(DataManager.SavePath(@"Mods/Archipelago/Archipelago/worlds/cavesofqud/data/Items.json"));
+        var items = JsonConvert.DeserializeObject<List<StaticItemDef>>(json);
+        return items.ToDictionary(e => e.Name);
+    }
+
     public static void HandleReceivedItem(Item item)
     {
-        if (item.Name.Contains("trap", CompareOptions.IgnoreCase))
+        if (item.IsTrap())
         {
             if (The.Player.OnWorldMap())
             {
@@ -45,80 +108,74 @@ public static class Items
             }
 
             GameLog.LogGameplay($"{{{{|&RReceived '{item.Name}'}}}}", APLocalOptions.PopupOnReceivedTrap);
+
+            // TODO improve
+            BombTrap(item.Blueprint());
+            return;
         }
         else
         {
             GameLog.LogGameplay($"Received '{item.Name}'", APLocalOptions.PopupOnReceivedItem);
         }
 
-        switch (item.Name)
+        if (item.IsItem())
         {
-            case "Hit Points":
-                The.Player.GetPart<PlayerStatsMod>().AddHitPoints();
-                return;
-            case "Attribute Points":
-                The.Player.GetPart<PlayerStatsMod>().AddAttributePoints();
-                return;
-            case "Attribute Bonus":
-                The.Player.GetPart<PlayerStatsMod>().AddAttributeBonus();
-                return;
-            case "Mutation Points":
-                The.Player.GetPart<PlayerStatsMod>().AddMutationPoints();
-                return;
-            case "Skill Points":
-                The.Player.GetPart<PlayerStatsMod>().AddSkillPoints();
-                return;
-            case "Rapid Mutation Advancement":
-                The.Player.GetPart<PlayerStatsMod>().RapidMutationAdvancement();
-                return;
-            case "10 Drams of Fresh Water":
-                The.Player.GiveDrams(10, "water");
-                return;
-            case "Spawn Creature Trap":
-                The.Player.GetCurrentCell().GetRandomLocalAdjacentCellAtRadius(4).AddObject(EncountersAPI.GetCreatureAroundLevel(The.Player.Level + 3));
-                return;
-            case "Bomb Trap":
-                BombTrap();
-                return;
-            case "Double Bomb Trap":
-                BombTrap();
-                BombTrap();
-                return;
-        }
-
-        if (item.Name.StartsWith("Item: "))
-        {
-            var split = item.Name.Split(" ");
-            if (split.Length >= 2)
+            for (int i = 0; i < item.Amount(); i++)
             {
-                string blueprint;
-                if (int.TryParse(split[1], out int amount))
-                {
-                    blueprint = string.Join(" ", split[2..]);
-                }
-                else
-                {
-                    amount = 1;
-                    blueprint = string.Join(" ", split[1..]);
-                }
-
-                for (int i = 0; i < amount; i++)
-                {
-                    The.Player.Inventory.AddObject(blueprint);
-                }
-
-                return;
+                The.Player.Inventory.AddObject(item.Blueprint());
+            }
+            return;
+        }
+        else if (item.IsLiquid())
+        {
+            The.Player.GiveDrams(item.Amount(), item.Blueprint());
+            return;
+        }
+        // TODO
+        else if (item.Name.StartsWith("Unlock: "))
+        {
+            // Quest unlock, nothing to do
+            return;
+        }
+        else
+        {
+            switch (item.Name)
+            {
+                case "Hit Points":
+                    The.Player.GetPart<PlayerStatsMod>().AddHitPoints();
+                    return;
+                case "Attribute Points":
+                    The.Player.GetPart<PlayerStatsMod>().AddAttributePoints();
+                    return;
+                case "Attribute Bonus":
+                    The.Player.GetPart<PlayerStatsMod>().AddAttributeBonus();
+                    return;
+                case "Mutation Points":
+                    The.Player.GetPart<PlayerStatsMod>().AddMutationPoints();
+                    return;
+                case "Skill Points":
+                    The.Player.GetPart<PlayerStatsMod>().AddSkillPoints();
+                    return;
+                case "Rapid Mutation Advancement":
+                    The.Player.GetPart<PlayerStatsMod>().RapidMutationAdvancement();
+                    return;
             }
         }
 
         GameLog.LogError($"Unknown item '{item.Name}' with id {item.Id}");
     }
 
-    private static void BombTrap()
+    private static void BombTrap(string blueprint)
     {
-        int dist = Random.Range(2, 6);
-        int countdown = Random.Range(2, 5);
-        var bomb = Tinkering_LayMine.CreateBomb((GameObject)null, The.Player, countdown);
-        The.Player.GetCurrentCell().GetRandomLocalAdjacentCellAtRadius(dist).AddObject(bomb);
+        var amount = Random.Range(1, 6);
+        for (var i = 0; i < amount; i++)
+        {
+            int dist = Random.Range(3, 10);
+            int countdown = Random.Range(3, 8);
+            var obj = GameObjectFactory.create(blueprint);
+            var bomb = Tinkering_LayMine.CreateBomb(obj, The.Player, countdown);
+            The.Player.GetCurrentCell().GetRandomLocalAdjacentCellAtRadius(dist).AddObject(bomb);
+        }
+
     }
 }

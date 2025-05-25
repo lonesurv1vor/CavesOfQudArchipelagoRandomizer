@@ -58,14 +58,14 @@ public class PlayerStatsMod : IPart
         int gain = leveler.RollHP(ParentObject.genotypeEntry.BaseHPGain);
         ParentObject.GetStat("Hitpoints").BaseValue += gain;
 
-        GameLog.LogGameplay($"Received {gain} hitpoints!");
+        GameLog.LogGameplay($"Granted {gain} hitpoints!");
     }
 
     public void AddAttributePoints()
     {
         ParentObject.GetStat("AP").BaseValue += 1;
 
-        GameLog.LogGameplay("Received one attribute point!");
+        GameLog.LogGameplay("Granted one attribute point!");
     }
 
     public void AddAttributeBonus()
@@ -77,7 +77,7 @@ public class PlayerStatsMod : IPart
         ParentObject.GetStat("Toughness").BaseValue += 1;
         ParentObject.GetStat("Ego").BaseValue += 1;
 
-        GameLog.LogGameplay("Received one of each attribute!");
+        GameLog.LogGameplay("Granted one of each attribute!");
     }
 
     public void AddMutationPoints()
@@ -88,7 +88,7 @@ public class PlayerStatsMod : IPart
             // TODO this is not quite correct, use GetFor
             int gain = leveler.RollMP(ParentObject.genotypeEntry.BaseMPGain);
             ParentObject.GainMP(gain);
-            GameLog.LogGameplay($"Received {gain} mutation points!");
+            GameLog.LogGameplay($"Granted {gain} mutation points!");
         }
         else
         {
@@ -103,7 +103,7 @@ public class PlayerStatsMod : IPart
         var leveler = ParentObject.GetPart<Leveler>();
         int gain = leveler.RollSP(ParentObject.genotypeEntry.BaseSPGain);
         ParentObject.GetStat("SP").BaseValue += gain;
-        GameLog.LogGameplay($"Received {gain} skill points!");
+        GameLog.LogGameplay($"Granted {gain} skill points!");
     }
 
     public void RapidMutationAdvancement()
@@ -112,7 +112,7 @@ public class PlayerStatsMod : IPart
         if (!ParentObject.IsEsper())
         {
             Leveler.RapidAdvancement(3, ParentObject);
-            GameLog.LogGameplay($"Received a rapid mutation advancement!");
+            GameLog.LogGameplay($"Granted a rapid mutation advancement!");
         }
         else
         {

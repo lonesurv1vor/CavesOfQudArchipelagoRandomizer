@@ -105,7 +105,6 @@ public class APGame : IPart
             Data.Seed = APSession.Seed;
 
             if (!slotData.TryGetValue("goal", out object goal)
-                || !slotData.TryGetValue("max_level", out object maxLevel)
                 || !slotData.TryGetValue("locations_per_level", out object locationsPerLevel))
             {
                 GameLog.LogError("Couldn't fill slot data", true);
@@ -113,7 +112,7 @@ public class APGame : IPart
             }
 
             Data.Goal = (int)(long)goal;
-            Data.MaxLevel = (int)(long)maxLevel;
+            Data.MaxLevel = (int)(long)50; // TODO TMP
             Data.LocationsPerLevel = (int)(long)locationsPerLevel;
 
             SyncLocations();
@@ -169,12 +168,31 @@ public class APGame : IPart
             if (loc != null && loc.Check())
             {
                 APSession.CheckLocations(loc.Id);
+                // Data.Locations.Add(loc.Name, loc);
+
                 GameLog.LogDebug($"Checked location '{loc.Name}'");
             }
         }
         catch (Exception e)
         {
             GameLog.DisplayException(e);
+        }
+    }
+
+    public bool HasReceivedItem(string name)
+    {
+        try
+        {
+            return APSession.ReceivedItems.Any(it => it.Item2 == name);
+        }
+        catch (NullReferenceException)
+        {
+            return false;
+        }
+        catch (Exception e)
+        {
+            GameLog.DisplayException(e);
+            return false;
         }
     }
 

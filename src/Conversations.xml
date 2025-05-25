@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<conversations>
+  <conversation ID="Argyve">
+    <choice Target="APDelivery">[AP] Deliver an item</choice>
+    <node ID="APDelivery">
+      <text>What do you have for me?</text>
+      <part Name="AcceptItemDelivery"></part>
+      <choice Target="End">That's all.</choice>
+    </node>
+
+    <node ID="Cave">
+      <choice Target="End" IfHasReceivedAPItem="Unlock: Fetch Argyve a Knickknack~Find a Knickknack"></choice>
+      <choice Target="End" IfNotHasReceivedAPItem="Unlock: Fetch Argyve a Knickknack~Find a Knickknack">[AP] I've not received permission yet</choice>
+    </node>
+    <start ID="StartHasFetch1">
+      <choice Target="GiveKnickknack" IfHasReceivedAPItem="Unlock: Fetch Argyve a Knickknack~Return to Argyve"></choice>
+      <choice Target="End" IfNotHasReceivedAPItem="Unlock: Fetch Argyve a Knickknack~Return to Argyve">[AP] I found your knickknack, but I've not received permission yet</choice>
+    </start>
+
+    <start ID="GiveKnickknack">
+      <choice Target="End" IfHasReceivedAPItem="Unlock: Fetch Argyve Another Knickknack~Find Another Knickknack"></choice>
+      <choice Target="End" IfNotHasReceivedAPItem="Unlock: Fetch Argyve Another Knickknack~Find Another Knickknack">[AP] I've not received permission yet</choice>
+    </start>
+    <start ID="StartHasFetch2">
+      <choice Target="Impressive" IfHasReceivedAPItem="Unlock: Fetch Argyve Another Knickknack~Return to Argyve"></choice>
+      <choice Target="End" IfNotHasReceivedAPItem="Unlock: Fetch Argyve Another Knickknack~Return to Argyve">[AP] I found your knickknack, but I've not received permission yet</choice>
+    </start>
+
+    <start ID="GiveKnickknack">
+      <choice Target="End" IfHasReceivedAPItem="Unlock: Fetch Argyve Another Knickknack~Find Another Knickknack"></choice>
+      <choice Target="End" IfNotHasReceivedAPItem="Unlock: Fetch Argyve Another Knickknack~Find Another Knickknack">[AP] I've not received permission yet</choice>
+    </start>
+    <start ID="StartHasFetch2">
+      <choice Target="Impressive" IfHasReceivedAPItem="Unlock: Fetch Argyve Another Knickknack~Return to Argyve"></choice>
+      <choice Target="End" IfNotHasReceivedAPItem="Unlock: Fetch Argyve Another Knickknack~Return to Argyve">[AP] I found your knickknack, but I've not received permission yet</choice>
+    </start>
+
+    <node ID="Weirdwire">
+      <choice GotoID="End" StartQuest="Weirdwire Conduit... Eureka!" IfHasReceivedAPItem="Unlock: Weirdwire Conduit... Eureka!~Find 200 Feet of Wire"></choice>
+      <choice GotoID="End" IfNotHasReceivedAPItem="Unlock: Weirdwire Conduit... Eureka!~Find 200 Feet of Wire">[AP] I've not received permission yet</choice>
+    </node>
+    <start ID="TheWire">
+      <choice GotoID="GiveWire" IfHasReceivedAPItem="Unlock: Weirdwire Conduit... Eureka!~Return to Argyve"></choice>
+      <choice GotoID="End" IfNotHasReceivedAPItem="Unlock: Weirdwire Conduit... Eureka!~Return to Argyve">[AP] I've not received permission yet</choice>
+      <choice GotoID="End">I don't have enough yet.</choice>
+    </start>
+
+    <node ID="Canticle1">
+      <choice Target="CanticleAccept1" IfHasReceivedAPItem="Unlock: A Canticle for Barathrum~Travel to Grit Gate"></choice>
+    </node>
+    <node ID="WhoBarathrumites">
+      <choice Target="CanticleAccept1" IfHasReceivedAPItem="Unlock: A Canticle for Barathrum~Travel to Grit Gate"></choice>
+      <choice Merge="Add" Target="End" IfNotHasReceivedAPItem="Unlock: A Canticle for Barathrum~Travel to Grit Gate">[AP] I've not received permission yet</choice>
+    </node>
+  </conversation>
+
+  <conversation ID="Gritgate Intercom" Inherits="">
+    <node ID="GaveDiskFromVillage">
+      <choice GotoID="End" IfHasReceivedAPItem="Unlock: More Than a Willing Spirit~Travel to Golgotha" StartQuest="More Than a Willing Spirit" TakeItem="Stamped Data Disk"></choice>
+      <choice GotoID="End" IfNotHasReceivedAPItem="Unlock: More Than a Willing Spirit~Travel to Golgotha">[AP] I've not received permission yet</choice>
+    </node>
+  </conversation>
+
+  <conversation ID="Otho" Inherits="BaseSlynthMayor">
+
+    <node Load="Replace" ID="Start" IfFinishedQuest="More Than a Willing Spirit" IfNotHaveQuest="Decoding the Signal">
+      <text>
+        Are you ready to discuss the signal?
+      </text>
+      <choice GotoID="Signal" IfHasReceivedAPItem="Unlock: Decoding the Signal~Get Q Girl's Instructions onto the Data Disk">Yes</choice>
+      <choice GotoID="End" IfNotHasReceivedAPItem="Unlock: Decoding the Signal~Get Q Girl's Instructions onto the Data Disk">[AP] I would like to, but I'm waiting for permission.</choice>
+    </node>
+  </conversation>
+</conversations>
