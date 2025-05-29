@@ -45,7 +45,7 @@ public static class GameLog
             8 => "B",
             9 => "r",
             10 => "m",
-            _ => "y"
+            _ => "y",
         };
         res += text + "}}";
 

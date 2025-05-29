@@ -7,7 +7,11 @@ using XRL;
 
 public static class APSession
 {
-    private static readonly Assembly _assembly = Assembly.LoadFrom(DataManager.SavePath(@"Mods/CavesOfQudArchipelagoRandomizer/thirdparty/Archipelago.MultiClient.Net.dll"));
+    private static readonly Assembly _assembly = Assembly.LoadFrom(
+        DataManager.SavePath(
+            @"Mods/CavesOfQudArchipelagoRandomizer/thirdparty/Archipelago.MultiClient.Net.dll"
+        )
+    );
 
     private static string _name;
     private static string _password;
@@ -19,13 +23,23 @@ public static class APSession
     private static object _messageLog;
     private static object _roomState;
 
-    public static bool Connect(string host, string name, string password, out Dictionary<string, object> slotData, out string[] errors)
+    public static bool Connect(
+        string host,
+        string name,
+        string password,
+        out Dictionary<string, object> slotData,
+        out string[] errors
+    )
     {
         _name = name;
         _password = password;
 
-        var sessionFactory = _assembly.GetType("Archipelago.MultiClient.Net.ArchipelagoSessionFactory");
-        _session = sessionFactory.GetMethod("CreateSession", new Type[] { typeof(string), typeof(int) }).Invoke(null, new[] { host, null });
+        var sessionFactory = _assembly.GetType(
+            "Archipelago.MultiClient.Net.ArchipelagoSessionFactory"
+        );
+        _session = sessionFactory
+            .GetMethod("CreateSession", new Type[] { typeof(string), typeof(int) })
+            .Invoke(null, new[] { host, null });
         _socket = _session.GetType().GetProperty("Socket").GetValue(_session);
         _items = _session.GetType().GetProperty("Items").GetValue(_session);
         _locations = _session.GetType().GetProperty("Locations").GetValue(_session);
@@ -50,20 +64,23 @@ public static class APSession
 
     public static string Seed
     {
-        get
-        {
-            return (string)_roomState.GetType().GetProperty("Seed").GetValue(_roomState);
-        }
+        get { return (string)_roomState.GetType().GetProperty("Seed").GetValue(_roomState); }
     }
 
     public static IEnumerable<(long, string)> CheckedLocations
     {
         get
         {
-            var allLocationsChecked = (IEnumerable<long>)_locations.GetType().GetProperty("AllLocationsChecked").GetValue(_locations);
+            var allLocationsChecked =
+                (IEnumerable<long>)
+                    _locations.GetType().GetProperty("AllLocationsChecked").GetValue(_locations);
             return allLocationsChecked.Select(id =>
             {
-                var name = (string)_locations.GetType().GetMethod("GetLocationNameFromId").Invoke(_locations, new object[] { id, null });
+                var name = (string)
+                    _locations
+                        .GetType()
+                        .GetMethod("GetLocationNameFromId")
+                        .Invoke(_locations, new object[] { id, null });
                 return (id, name);
             });
         }
@@ -73,10 +90,16 @@ public static class APSession
     {
         get
         {
-            var allLocationsChecked = (IEnumerable<long>)_locations.GetType().GetProperty("AllMissingLocations").GetValue(_locations);
+            var allLocationsChecked =
+                (IEnumerable<long>)
+                    _locations.GetType().GetProperty("AllMissingLocations").GetValue(_locations);
             return allLocationsChecked.Select(id =>
             {
-                var name = (string)_locations.GetType().GetMethod("GetLocationNameFromId").Invoke(_locations, new object[] { id, null });
+                var name = (string)
+                    _locations
+                        .GetType()
+                        .GetMethod("GetLocationNameFromId")
+                        .Invoke(_locations, new object[] { id, null });
                 return (id, name);
             });
         }
@@ -86,7 +109,9 @@ public static class APSession
     {
         get
         {
-            var items = (IEnumerable<object>)_items.GetType().GetProperty("AllItemsReceived").GetValue(_items);
+            var items =
+                (IEnumerable<object>)
+                    _items.GetType().GetProperty("AllItemsReceived").GetValue(_items);
 
             return items.Select(item =>
             {
@@ -103,7 +128,13 @@ public static class APSession
         Disconnect();
         AddEventHandlers();
 
-        var loginResult = _session.GetType().GetMethod("TryConnectAndLogin").Invoke(_session, new object[] { "Caves of Qud", _name, 7, null, null, null, _password, true });
+        var loginResult = _session
+            .GetType()
+            .GetMethod("TryConnectAndLogin")
+            .Invoke(
+                _session,
+                new object[] { "Caves of Qud", _name, 7, null, null, null, _password, true }
+            );
 
         if (loginResult.GetType().Name == "LoginFailure")
         {
@@ -113,7 +144,9 @@ public static class APSession
         }
         else
         {
-            slotData = (Dictionary<string, object>)loginResult.GetType().GetProperty("SlotData").GetValue(loginResult);
+            slotData =
+                (Dictionary<string, object>)
+                    loginResult.GetType().GetProperty("SlotData").GetValue(loginResult);
             errors = null;
             return true;
         }
@@ -132,7 +165,10 @@ public static class APSession
 
     public static void CheckLocations(params long[] ids)
     {
-        _locations.GetType().GetMethod("CompleteLocationChecks").Invoke(_locations, new object[] { ids });
+        _locations
+            .GetType()
+            .GetMethod("CompleteLocationChecks")
+            .Invoke(_locations, new object[] { ids });
     }
 
     public static void SetGoalAchieved()
@@ -157,25 +193,40 @@ public static class APSession
 
         {
             var ev = _messageLog.GetType().GetEvent("OnMessageReceived");
-            _onMessageReceivedDelegate = Delegate.CreateDelegate(ev.EventHandlerType, null,
-                typeof(APSession).GetMethod("OnMessageReceived",
-                BindingFlags.Static | BindingFlags.NonPublic));
+            _onMessageReceivedDelegate = Delegate.CreateDelegate(
+                ev.EventHandlerType,
+                null,
+                typeof(APSession).GetMethod(
+                    "OnMessageReceived",
+                    BindingFlags.Static | BindingFlags.NonPublic
+                )
+            );
             ev.AddEventHandler(_messageLog, _onMessageReceivedDelegate);
         }
 
         {
             var ev = _items.GetType().GetEvent("ItemReceived");
-            _itemReceivedDelegate = Delegate.CreateDelegate(ev.EventHandlerType, null,
-                typeof(APSession).GetMethod("OnItemReceived",
-                BindingFlags.Static | BindingFlags.NonPublic));
+            _itemReceivedDelegate = Delegate.CreateDelegate(
+                ev.EventHandlerType,
+                null,
+                typeof(APSession).GetMethod(
+                    "OnItemReceived",
+                    BindingFlags.Static | BindingFlags.NonPublic
+                )
+            );
             ev.AddEventHandler(_items, _itemReceivedDelegate);
         }
 
         {
             var ev = _socket.GetType().GetEvent("ErrorReceived");
-            _errorReceivedDelegate = Delegate.CreateDelegate(ev.EventHandlerType, null,
-                typeof(APSession).GetMethod("OnSocketErrorReceived",
-                BindingFlags.Static | BindingFlags.NonPublic));
+            _errorReceivedDelegate = Delegate.CreateDelegate(
+                ev.EventHandlerType,
+                null,
+                typeof(APSession).GetMethod(
+                    "OnSocketErrorReceived",
+                    BindingFlags.Static | BindingFlags.NonPublic
+                )
+            );
             ev.AddEventHandler(_socket, _errorReceivedDelegate);
         }
     }

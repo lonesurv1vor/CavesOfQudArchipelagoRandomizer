@@ -1,15 +1,14 @@
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using Newtonsoft.Json;
 using Qud.API;
+using UnityEngine;
 using XRL;
 using XRL.World;
 using XRL.World.Parts.Skill;
-using UnityEngine;
 using GameObject = XRL.World.GameObject;
-using System.Globalization;
-using System.IO;
-using System.Collections.Generic;
-using Newtonsoft.Json;
-using System.Linq;
-
 
 [System.Serializable]
 public class Item : IComposite
@@ -81,11 +80,14 @@ public class StaticItemDef
 
 public static class Items
 {
-    public static readonly Dictionary<string, StaticItemDef> StaticItemDefinitions = LoadStaticItemDefs();
+    public static readonly Dictionary<string, StaticItemDef> StaticItemDefinitions =
+        LoadStaticItemDefs();
 
     private static Dictionary<string, StaticItemDef> LoadStaticItemDefs()
     {
-        string json = File.ReadAllText(DataManager.SavePath(@"Mods/Archipelago/Archipelago/worlds/cavesofqud/data/Items.json"));
+        string json = File.ReadAllText(
+            DataManager.SavePath(@"Mods/Archipelago/Archipelago/worlds/cavesofqud/data/Items.json")
+        );
         var items = JsonConvert.DeserializeObject<List<StaticItemDef>>(json);
         return items.ToDictionary(e => e.Name);
     }
@@ -100,14 +102,19 @@ public static class Items
                 GameLog.LogDebug($"Receive of '{item.Name}' delayed until exiting the world map");
                 return;
             }
-            else if (APLocalOptions.DelayTrapsInSettlements && The.Player.CurrentZone.IsCheckpoint())
+            else if (
+                APLocalOptions.DelayTrapsInSettlements && The.Player.CurrentZone.IsCheckpoint()
+            )
             {
                 APGame.Instance.Data.DelayedItems.Enqueue(item);
                 GameLog.LogDebug($"Receive of '{item.Name}' delayed until exiting the settlement");
                 return;
             }
 
-            GameLog.LogGameplay($"{{{{|&RReceived '{item.Name}'}}}}", APLocalOptions.PopupOnReceivedTrap);
+            GameLog.LogGameplay(
+                $"{{{{|&RReceived '{item.Name}'}}}}",
+                APLocalOptions.PopupOnReceivedTrap
+            );
 
             // TODO improve
             BombTrap(item.Blueprint());
@@ -176,6 +183,5 @@ public static class Items
             var bomb = Tinkering_LayMine.CreateBomb(obj, The.Player, countdown);
             The.Player.GetCurrentCell().GetRandomLocalAdjacentCellAtRadius(dist).AddObject(bomb);
         }
-
     }
 }

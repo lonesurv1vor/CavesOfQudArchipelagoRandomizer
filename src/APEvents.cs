@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-
 // Everything in here happens in separate thread outside of the game loop
 // - it is not allowed to access the games global objects from here directly
 public static class APEvents
@@ -57,7 +56,10 @@ public static class APEvents
 
     public static void OnSocketErrorReceived(Exception E, string message)
     {
-        AddErrorMessage($"Connection to the Archipelago server has been lost. You can continue playing offline, progress will be synced after reconnecting. To reconnect, please save and quit to main menu and reload the saved game.", true);
+        AddErrorMessage(
+            $"Connection to the Archipelago server has been lost. You can continue playing offline, progress will be synced after reconnecting. To reconnect, please save and quit to main menu and reload the saved game.",
+            true
+        );
     }
 
     private static void DisplayException(Exception e)
@@ -67,6 +69,8 @@ public static class APEvents
 
     private static void AddErrorMessage(string message, bool popup)
     {
-        Messages.Enqueue(new QueuedLogMessage { Message = GameLog.FormatError(message), Popup = popup });
+        Messages.Enqueue(
+            new QueuedLogMessage { Message = GameLog.FormatError(message), Popup = popup }
+        );
     }
 }

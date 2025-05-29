@@ -26,7 +26,10 @@ public class PlayerStatsMod : IPart
                 xpTable.Add(stepXP, $"Level {level}.{step}");
             }
         }
-        xpTable.Add(Leveler.GetXPForLevel(APGame.Instance.Data.MaxLevel), $"{APGame.Instance.Data.MaxLevel}.0");
+        xpTable.Add(
+            Leveler.GetXPForLevel(APGame.Instance.Data.MaxLevel),
+            $"{APGame.Instance.Data.MaxLevel}.0"
+        );
 
         foreach (var (xp, loc) in xpTable)
         {

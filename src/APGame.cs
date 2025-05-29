@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +21,7 @@ public class PersistentData : IComposite
     public int LocationsPerLevel;
 
     public int ItemIndex = 0;
+
     [NonSerialized] // Custom as Queue does not support Json serialization
     public Queue<Item> DelayedItems = new();
     public Dictionary<string, Location> Locations = new();
@@ -41,9 +41,12 @@ public class PersistentData : IComposite
 
 public static class APLocalOptions
 {
-    public static bool DelayTrapsInSettlements => Options.GetOptionBool("lonesurv1vor_archipelago_OptionDelayTrapsInSettlements");
-    public static bool PopupOnReceivedItem => Options.GetOptionBool("lonesurv1vor_archipelago_OptionPopupOnReceivedItem");
-    public static bool PopupOnReceivedTrap => Options.GetOptionBool("lonesurv1vor_archipelago_OptionPopupOnReceivedTrap");
+    public static bool DelayTrapsInSettlements =>
+        Options.GetOptionBool("lonesurv1vor_archipelago_OptionDelayTrapsInSettlements");
+    public static bool PopupOnReceivedItem =>
+        Options.GetOptionBool("lonesurv1vor_archipelago_OptionPopupOnReceivedItem");
+    public static bool PopupOnReceivedTrap =>
+        Options.GetOptionBool("lonesurv1vor_archipelago_OptionPopupOnReceivedTrap");
 }
 
 [Serializable]
@@ -84,18 +87,30 @@ public class APGame : IPart
                     Data.Password = password;
                 }
 
-                Data.LastConnectionSuccessful = APSession.Connect(Data.Host, Data.Name, Data.Password, out slotData, out string[] errors);
+                Data.LastConnectionSuccessful = APSession.Connect(
+                    Data.Host,
+                    Data.Name,
+                    Data.Password,
+                    out slotData,
+                    out string[] errors
+                );
 
                 if (!Data.LastConnectionSuccessful)
                 {
-                    GameLog.LogError($"Couldn't connect to the archipelago server:\n\n{string.Join("\n", errors)}", true);
+                    GameLog.LogError(
+                        $"Couldn't connect to the archipelago server:\n\n{string.Join("\n", errors)}",
+                        true
+                    );
                     continue;
                 }
 
                 if (Data.Seed != null && Data.Seed != APSession.Seed)
                 {
                     Data.LastConnectionSuccessful = false;
-                    GameLog.LogError("Incompatible Save: The connected rooms seed has changed. This save game has been used for a different room and is not compatible.", true);
+                    GameLog.LogError(
+                        "Incompatible Save: The connected rooms seed has changed. This save game has been used for a different room and is not compatible.",
+                        true
+                    );
                     continue;
                 }
 
@@ -104,8 +119,10 @@ public class APGame : IPart
 
             Data.Seed = APSession.Seed;
 
-            if (!slotData.TryGetValue("goal", out object goal)
-                || !slotData.TryGetValue("locations_per_level", out object locationsPerLevel))
+            if (
+                !slotData.TryGetValue("goal", out object goal)
+                || !slotData.TryGetValue("locations_per_level", out object locationsPerLevel)
+            )
             {
                 GameLog.LogError("Couldn't fill slot data", true);
                 return false;
@@ -205,7 +222,9 @@ public class APGame : IPart
     {
         try
         {
-            var checkedLocations = Data.Locations.Where(l => l.Value.Checked).Select(l => l.Value.Id);
+            var checkedLocations = Data
+                .Locations.Where(l => l.Value.Checked)
+                .Select(l => l.Value.Id);
             APSession.CheckLocations(checkedLocations.ToArray());
 
             Dictionary<string, Location> newLocations = new();
@@ -223,7 +242,9 @@ public class APGame : IPart
 
             Data.Locations = newLocations;
 
-            GameLog.LogDebug($"Locations synced: {APSession.CheckedLocations.Count()}/{Data.Locations.Count()}");
+            GameLog.LogDebug(
+                $"Locations synced: {APSession.CheckedLocations.Count()}/{Data.Locations.Count()}"
+            );
         }
         catch (Exception e)
         {
@@ -241,7 +262,10 @@ public class APGame : IPart
 
     public override bool HandleEvent(ZoneActivatedEvent E)
     {
-        if (!E.Zone.IsWorldMap() && (!APLocalOptions.DelayTrapsInSettlements || !E.Zone.IsCheckpoint()))
+        if (
+            !E.Zone.IsWorldMap()
+            && (!APLocalOptions.DelayTrapsInSettlements || !E.Zone.IsCheckpoint())
+        )
         {
             while (Data.DelayedItems.TryDequeue(out Item item))
             {

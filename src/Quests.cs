@@ -32,18 +32,26 @@ namespace XRL.World.Conversations.Parts
                 {
                     if (The.Player.HasObjectInInventory(loc.Value.Blueprint, loc.Value.Amount))
                     {
-                        var choice = E.Element.AddChoice(loc.Value.Name, $"{loc.Value.Name}", "APDelivery");
+                        var choice = E.Element.AddChoice(
+                            loc.Value.Name,
+                            $"{loc.Value.Name}",
+                            "APDelivery"
+                        );
                         var ti = new TakeItem(loc.Value.Blueprint)
                         {
                             Amount = $"{loc.Value.Amount}",
-                            Destroy = true
+                            Destroy = true,
                         };
                         choice.AddPart(ti);
                         choice.AddPart(new DeliverItems(loc.Value.Name));
                     }
                     else
                     {
-                        var choice = E.Element.AddChoice(loc.Value.Name, $"{loc.Value.Name} {{{{|&O(not enough)}}}}", "APDelivery");
+                        var choice = E.Element.AddChoice(
+                            loc.Value.Name,
+                            $"{loc.Value.Name} {{{{|&O(not enough)}}}}",
+                            "APDelivery"
+                        );
                     }
                 }
             }
@@ -89,9 +97,18 @@ public class PlayerQuestMod : IPart
 
             // Goal
             if (
-                (APGame.Instance.Data.Goal == 0 && loc.Name == "Fetch Argyve a Knickknack~Return to Argyve")
-                || (APGame.Instance.Data.Goal == 1 && loc.Name == "More Than a Willing Spirit~Return to Grit Gate")
-                || (APGame.Instance.Data.Goal == 2 && loc.Name == "Decoding the Signal~Return to Grit Gate")
+                (
+                    APGame.Instance.Data.Goal == 0
+                    && loc.Name == "Fetch Argyve a Knickknack~Return to Argyve"
+                )
+                || (
+                    APGame.Instance.Data.Goal == 1
+                    && loc.Name == "More Than a Willing Spirit~Return to Grit Gate"
+                )
+                || (
+                    APGame.Instance.Data.Goal == 2
+                    && loc.Name == "Decoding the Signal~Return to Grit Gate"
+                )
             )
             {
                 APGame.Instance.SetGoalAchieved();

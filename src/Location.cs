@@ -37,7 +37,11 @@ public class StaticLocationDefs
 
     private static Dictionary<string, StaticLocationDefs> LoadStaticLocationDefs()
     {
-        string json = File.ReadAllText(DataManager.SavePath(@"Mods/Archipelago/Archipelago/worlds/cavesofqud/data/Locations.json"));
+        string json = File.ReadAllText(
+            DataManager.SavePath(
+                @"Mods/Archipelago/Archipelago/worlds/cavesofqud/data/Locations.json"
+            )
+        );
         var items = JsonConvert.DeserializeObject<List<StaticLocationDefs>>(json);
         return items.ToDictionary(e => e.Name);
     }
