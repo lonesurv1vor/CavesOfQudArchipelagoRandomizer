@@ -7,7 +7,7 @@ using XRL;
 
 public static class APSession
 {
-    private static readonly Assembly _assembly = Assembly.LoadFrom(DataManager.SavePath(@"Mods/Archipelago/thirdparty/Archipelago.MultiClient.Net.dll"));
+    private static readonly Assembly _assembly = Assembly.LoadFrom(DataManager.SavePath(@"Mods/CavesOfQudArchipelagoRandomizer/thirdparty/Archipelago.MultiClient.Net.dll"));
 
     private static string _name;
     private static string _password;

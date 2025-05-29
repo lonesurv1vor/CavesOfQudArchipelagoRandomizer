@@ -13,25 +13,11 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: true
-    - name: Create Mod Archive
+    - name: Create artifacts
       run: |
-        D=`pwd`
-        D=`basename $D`
-        cd ..
-        zip -r $D.zip $D/manifest.json $D/LICENSE.txt $D/README.md $D/src $D/thirdparty $D/Archipelago/worlds/cavesofqud/data
-    - name: Create APWorld
-      run: |
-        cd Archipelago/worlds
-        zip -r ../../../cavesofqud.apworld cavesofqud
-    # Currently not working due to missing file browser
-    # - name: Generate Config Template
-    #   run: |
-    #     cd Archipelago
-    #     find . -name "requirements.txt" -exec python -m pip install -r {} \;
-    #     python Launcher.py "Generate Template Options"
+        make package
     - uses: ncipollo/release-action@v1
       with:
-        artifacts: "../*.zip,../*.apworld"
-        # artifacts: "../*.zip,../*.apworld,./Archipelago/players/Templates/Caves of Qud.yaml"
+        artifacts: "bin/*.zip,bin/*.apworld"
         draft: true
         generateReleaseNotes: true
