@@ -20,7 +20,7 @@ install: collect
 .ONESHELL:
 .PHONY: run
 run: install
-	"$(GAME_BIN)"
+	"$(GAME_BIN)" -logFile -
 
 
 .ONESHELL:

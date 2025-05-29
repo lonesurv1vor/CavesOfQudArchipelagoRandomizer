@@ -39,7 +39,7 @@ public class StaticLocationDefs
     {
         string json = File.ReadAllText(
             DataManager.SavePath(
-                @"Mods/Archipelago/Archipelago/worlds/cavesofqud/data/Locations.json"
+                @"Mods/CavesOfQudArchipelagoRandomizer/Archipelago/worlds/cavesofqud/data/Locations.json"
             )
         );
         var items = JsonConvert.DeserializeObject<List<StaticLocationDefs>>(json);

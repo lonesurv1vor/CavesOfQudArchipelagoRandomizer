@@ -86,7 +86,7 @@ public static class Items
     private static Dictionary<string, StaticItemDef> LoadStaticItemDefs()
     {
         string json = File.ReadAllText(
-            DataManager.SavePath(@"Mods/Archipelago/Archipelago/worlds/cavesofqud/data/Items.json")
+            DataManager.SavePath(@"Mods/CavesOfQudArchipelagoRandomizer/Archipelago/worlds/cavesofqud/data/Items.json")
         );
         var items = JsonConvert.DeserializeObject<List<StaticItemDef>>(json);
         return items.ToDictionary(e => e.Name);
