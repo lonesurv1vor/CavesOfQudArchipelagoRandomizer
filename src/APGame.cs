@@ -24,7 +24,8 @@ public class PersistentData : IComposite
 
     [NonSerialized] // Custom as Queue does not support Json serialization
     public Queue<Item> DelayedItems = new();
-    public Dictionary<string, Location> Locations = new();
+    public Dictionary<string, long> MissingLocations = new();
+    public Dictionary<string, long> CheckedLocations = new();
 
     public void Write(SerializationWriter Writer)
     {
@@ -178,16 +179,42 @@ public class APGame : IPart
         return true;
     }
 
-    public void CheckLocation(Location loc)
+    public bool IsLocation(string loc)
+    {
+        return Data.MissingLocations.ContainsKey(loc) || Data.CheckedLocations.ContainsKey(loc);
+    }
+
+    public bool LocationChecked(string loc)
+    {
+        if (Data.MissingLocations.ContainsKey(loc))
+        {
+            return false;
+        }
+        else if (Data.CheckedLocations.ContainsKey(loc))
+        {
+            return true;
+        }
+        else
+        {
+            throw new Exception("Location '{loc}' is neither missing nor checked");
+        }
+    }
+
+    public void CheckLocation(string loc)
     {
         try
         {
-            if (loc != null && loc.Check())
+            if (!LocationChecked(loc))
             {
-                APSession.CheckLocations(loc.Id);
-                // Data.Locations.Add(loc.Name, loc);
-
-                GameLog.LogDebug($"Checked location '{loc.Name}'");
+                long id = Data.MissingLocations[loc];
+                APSession.CheckLocations(id);
+                Data.MissingLocations.Remove(loc);
+                Data.CheckedLocations.Add(loc, id);
+                GameLog.LogDebug($"Checked location '{loc}'");
+            }
+            else
+            {
+                GameLog.LogDebug($"Ignoring already checked location '{loc}'");
             }
         }
         catch (Exception e)
@@ -222,28 +249,25 @@ public class APGame : IPart
     {
         try
         {
-            var checkedLocations = Data
-                .Locations.Where(l => l.Value.Checked)
-                .Select(l => l.Value.Id);
+            var checkedLocations = Data.CheckedLocations.Values;
             APSession.CheckLocations(checkedLocations.ToArray());
 
-            Dictionary<string, Location> newLocations = new();
+            Dictionary<string, long> newCheckedLocations = new();
             foreach (var (id, name) in APSession.CheckedLocations)
             {
-                var loc = new Location(name, id);
-                loc.Check();
-                newLocations.Add(name, loc);
+                newCheckedLocations.Add(name, id);
             }
+            Dictionary<string, long> newMissingLocations = new();
             foreach (var (id, name) in APSession.MissingLocations)
             {
-                var loc = new Location(name, id);
-                newLocations.Add(name, loc);
+                newMissingLocations.Add(name, id);
             }
 
-            Data.Locations = newLocations;
+            Data.MissingLocations = newMissingLocations;
+            Data.CheckedLocations = newCheckedLocations;
 
             GameLog.LogDebug(
-                $"Locations synced: {APSession.CheckedLocations.Count()}/{Data.Locations.Count()}"
+                $"Locations synced: {newCheckedLocations.Count()}/{newMissingLocations.Count() + newCheckedLocations.Count()}"
             );
         }
         catch (Exception e)

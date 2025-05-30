@@ -1,14 +1,7 @@
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using Newtonsoft.Json;
-using Qud.API;
 using UnityEngine;
 using XRL;
 using XRL.World;
 using XRL.World.Parts.Skill;
-using GameObject = XRL.World.GameObject;
 
 [System.Serializable]
 public class Item : IComposite
@@ -29,69 +22,47 @@ public class Item : IComposite
 
     public bool IsTrap()
     {
-        if (!Items.StaticItemDefinitions.ContainsKey(Name))
+        if (!APStaticData.Items.ContainsKey(Name))
         {
             return false;
         }
-        var def = Items.StaticItemDefinitions[Name];
+        var def = APStaticData.Items[Name];
         return def != null && def.Category == "trap";
     }
 
     public bool IsItem()
     {
-        if (!Items.StaticItemDefinitions.ContainsKey(Name))
+        if (!APStaticData.Items.ContainsKey(Name))
         {
             return false;
         }
-        var def = Items.StaticItemDefinitions[Name];
+        var def = APStaticData.Items[Name];
         return def != null && def.Type == "item";
     }
 
     public bool IsLiquid()
     {
-        if (!Items.StaticItemDefinitions.ContainsKey(Name))
+        if (!APStaticData.Items.ContainsKey(Name))
         {
             return false;
         }
-        var def = Items.StaticItemDefinitions[Name];
+        var def = APStaticData.Items[Name];
         return def != null && def.Type == "liquid";
     }
 
     public string Blueprint()
     {
-        return Items.StaticItemDefinitions[Name]?.Blueprint;
+        return APStaticData.Items[Name].Blueprint;
     }
 
     public int Amount()
     {
-        return Items.StaticItemDefinitions[Name]?.Amount ?? 1;
+        return APStaticData.Items[Name].Amount;
     }
-}
-
-[System.Serializable]
-public class StaticItemDef
-{
-    public string Name;
-    public string Category;
-    public string Type;
-    public int Amount;
-    public string Blueprint;
 }
 
 public static class Items
 {
-    public static readonly Dictionary<string, StaticItemDef> StaticItemDefinitions =
-        LoadStaticItemDefs();
-
-    private static Dictionary<string, StaticItemDef> LoadStaticItemDefs()
-    {
-        string json = File.ReadAllText(
-            DataManager.SavePath(@"Mods/CavesOfQudArchipelagoRandomizer/Archipelago/worlds/cavesofqud/data/Items.json")
-        );
-        var items = JsonConvert.DeserializeObject<List<StaticItemDef>>(json);
-        return items.ToDictionary(e => e.Name);
-    }
-
     public static void HandleReceivedItem(Item item)
     {
         if (item.IsTrap())
@@ -125,6 +96,7 @@ public static class Items
             GameLog.LogGameplay($"Received '{item.Name}'", APLocalOptions.PopupOnReceivedItem);
         }
 
+        XRL.UI.Popup.Show($"{item.IsItem()} {item.IsLiquid()} {item.Amount()} {item.Blueprint()}");
         if (item.IsItem())
         {
             for (int i = 0; i < item.Amount(); i++)

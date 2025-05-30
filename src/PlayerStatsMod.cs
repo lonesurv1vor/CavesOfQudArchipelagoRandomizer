@@ -35,7 +35,7 @@ public class PlayerStatsMod : IPart
         {
             if (xp > E.AmountBefore && xp <= E.AmountBefore + E.Amount)
             {
-                APGame.Instance.CheckLocation(APGame.Instance.Data.Locations[loc]);
+                APGame.Instance.CheckLocation(loc);
             }
         }
 

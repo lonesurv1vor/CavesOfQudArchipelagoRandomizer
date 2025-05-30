@@ -1,5 +1,4 @@
 using System.Linq;
-using XRL.UI;
 using XRL.World;
 using XRL.World.Conversations;
 
@@ -26,9 +25,9 @@ namespace XRL.World.Conversations.Parts
         public override bool HandleEvent(EnterElementEvent E)
         {
             E.Element.Elements.Clear();
-            foreach (var loc in StaticLocationDefs.Defs.Where(l => l.Value.Type == "delivery"))
+            foreach (var loc in APStaticData.Locations.Where(l => l.Value.Type == "delivery"))
             {
-                if (!APGame.Instance.Data.Locations[loc.Value.Name].Checked)
+                if (!APGame.Instance.LocationChecked(loc.Value.Name))
                 {
                     if (The.Player.HasObjectInInventory(loc.Value.Blueprint, loc.Value.Amount))
                     {
@@ -75,7 +74,7 @@ namespace XRL.World.Conversations.Parts
 
         public override bool HandleEvent(EnterElementEvent E)
         {
-            APGame.Instance.CheckLocation(APGame.Instance.Data.Locations[LocationName]);
+            APGame.Instance.CheckLocation(LocationName);
             return base.HandleEvent(E);
         }
     }
@@ -90,24 +89,23 @@ public class PlayerQuestMod : IPart
 
     public override bool HandleEvent(QuestFinishedEvent E)
     {
-        APGame.Instance.Data.Locations.TryGetValue(E.Quest.Name, out Location loc);
-        if (loc != null)
+        if (APGame.Instance.IsLocation(E.Quest.Name))
         {
-            APGame.Instance.CheckLocation(loc);
+            APGame.Instance.CheckLocation(E.Quest.Name);
 
             // Goal
             if (
                 (
                     APGame.Instance.Data.Goal == 0
-                    && loc.Name == "Fetch Argyve a Knickknack~Return to Argyve"
+                    && E.Quest.Name == "Fetch Argyve a Knickknack~Return to Argyve"
                 )
                 || (
                     APGame.Instance.Data.Goal == 1
-                    && loc.Name == "More Than a Willing Spirit~Return to Grit Gate"
+                    && E.Quest.Name == "More Than a Willing Spirit~Return to Grit Gate"
                 )
                 || (
                     APGame.Instance.Data.Goal == 2
-                    && loc.Name == "Decoding the Signal~Return to Grit Gate"
+                    && E.Quest.Name == "Decoding the Signal~Return to Grit Gate"
                 )
             )
             {

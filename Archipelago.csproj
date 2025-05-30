@@ -3,8 +3,8 @@ compiled CoQ references so they can be decompiled and used by vscode during the 
 Change QudPath below to point to your Caves of Qud installation. -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <AssemblyName>lonesurvivor_Archipelago</AssemblyName>
-    <PackageId>lonesurvivor_Archipelago</PackageId>
+    <AssemblyName>CavesOfQudArchipelagoRandomizer</AssemblyName>
+    <PackageId>lonesurv1vor_CavesOfQudArchipelagoRandomizer</PackageId>
     <Authors>lonesurv1vor</Authors>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>9</LangVersion>
