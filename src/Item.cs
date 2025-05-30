@@ -96,7 +96,6 @@ public static class Items
             GameLog.LogGameplay($"Received '{item.Name}'", APLocalOptions.PopupOnReceivedItem);
         }
 
-        XRL.UI.Popup.Show($"{item.IsItem()} {item.IsLiquid()} {item.Amount()} {item.Blueprint()}");
         if (item.IsItem())
         {
             for (int i = 0; i < item.Amount(); i++)

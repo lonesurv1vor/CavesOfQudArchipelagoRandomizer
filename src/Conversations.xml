@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <conversations>
   <conversation ID="Argyve">
-    <choice Target="APDelivery">[AP] Deliver an item</choice>
-    <node ID="APDelivery">
-      <text>What do you have for me?</text>
-      <part Name="AcceptItemDelivery"></part>
+    <choice Target="APDeliveryList">[AP] Deliver an item</choice>
+    <node ID="APDeliveryList">
+      <text>Give me your all your knickknacks and everything else!</text>
+      <part Name="APConversations.AcceptItemDelivery"></part>
       <choice Target="End">That's all.</choice>
     </node>
     <node ID="Cave">
@@ -117,6 +117,12 @@
     </node>
   </conversation>
   <conversation ID="Gritgate Intercom" Inherits="">
+    <choice Target="APDeliveryList">[AP] Deliver an item</choice>
+    <node ID="APDeliveryList">
+      <text>Do you have something for us?</text>
+      <part Name="APConversations.AcceptItemDelivery"></part>
+      <choice Target="End">That's all.</choice>
+    </node>
     <node ID="GaveDiskFromVillage">
       <choice
         GotoID="End"

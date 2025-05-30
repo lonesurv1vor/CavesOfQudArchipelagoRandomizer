@@ -11,7 +11,8 @@ Change QudPath below to point to your Caves of Qud installation. -->
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <DisableImplicitFrameworkReferences>true</DisableImplicitFrameworkReferences>
-    <QudPath>D:/SteamLibrary/steamapps/common/Caves of Qud</QudPath>
+    <QudPath>../QudPath</QudPath>
+    <!-- I put a symlink outside of the root dir -->
     <QudLibPath>$(QudPath)/CoQ_Data/Managed</QudLibPath>
   </PropertyGroup>
   <ItemGroup>

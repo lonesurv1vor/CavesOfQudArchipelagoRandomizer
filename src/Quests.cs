@@ -1,20 +1,21 @@
 using System.Linq;
+using XRL;
 using XRL.World;
 using XRL.World.Conversations;
+using XRL.World.Conversations.Parts;
 
-[HasConversationDelegate]
-public static class APConversationDelegates
+namespace APConversations
 {
-    [ConversationDelegate]
-    public static bool IfHasReceivedAPItem(DelegateContext Context)
+    [HasConversationDelegate]
+    public static class APConversationDelegates
     {
-        return APGame.Instance.HasReceivedItem(Context.Value);
+        [ConversationDelegate]
+        public static bool IfHasReceivedAPItem(DelegateContext Context)
+        {
+            return APGame.Instance.HasReceivedItem(Context.Value);
+        }
     }
-}
 
-// TODO namespace
-namespace XRL.World.Conversations.Parts
-{
     public class AcceptItemDelivery : IConversationPart
     {
         public override bool WantEvent(int ID, int Propagation)
@@ -25,46 +26,45 @@ namespace XRL.World.Conversations.Parts
         public override bool HandleEvent(EnterElementEvent E)
         {
             E.Element.Elements.Clear();
-            foreach (var loc in APStaticData.Locations.Where(l => l.Value.Type == "delivery"))
+
+            foreach (
+                var loc in APStaticData
+                    .Locations.Where(l => l.Value.Type == "delivery")
+                    .OrderBy(l => l.Value.Name)
+            )
             {
                 if (!APGame.Instance.LocationChecked(loc.Value.Name))
                 {
-                    if (The.Player.HasObjectInInventory(loc.Value.Blueprint, loc.Value.Amount))
+                    var choice = E.Element.AddChoice(null, null, "APDeliveryList");
+                    choice.AddPart(new DeliverItem(loc.Value.Name));
+
+                    var item = The.Player.FindObjectInInventory(loc.Value.Blueprint);
+                    if (item != null && item.Count >= loc.Value.Amount)
                     {
-                        var choice = E.Element.AddChoice(
-                            loc.Value.Name,
-                            $"{loc.Value.Name}",
-                            "APDelivery"
-                        );
-                        var ti = new TakeItem(loc.Value.Blueprint)
-                        {
-                            Amount = $"{loc.Value.Amount}",
-                            Destroy = true,
-                        };
-                        choice.AddPart(ti);
-                        choice.AddPart(new DeliverItems(loc.Value.Name));
+                        choice.Text =
+                            $"{loc.Value.Name} {{{{|&B[{item?.Count ?? 0}/{loc.Value.Amount}]}}}}";
                     }
                     else
                     {
-                        var choice = E.Element.AddChoice(
-                            loc.Value.Name,
-                            $"{loc.Value.Name} {{{{|&O(not enough)}}}}",
-                            "APDelivery"
-                        );
+                        choice.Text =
+                            $"{loc.Value.Name} {{{{|&O[{item?.Count ?? 0}/{loc.Value.Amount}]}}}}";
                     }
                 }
             }
+
+            E.Element.AddChoice(null, "That's all.", "End");
+
             return base.HandleEvent(E);
         }
     }
 
-    public class DeliverItems : IConversationPart
+    public class DeliverItem : IConversationPart
     {
-        public string LocationName;
+        public string Location;
 
-        public DeliverItems(string locName)
+        public DeliverItem(string loc)
         {
-            LocationName = locName;
+            Location = loc;
         }
 
         public override bool WantEvent(int ID, int Propagation)
@@ -74,8 +74,19 @@ namespace XRL.World.Conversations.Parts
 
         public override bool HandleEvent(EnterElementEvent E)
         {
-            APGame.Instance.CheckLocation(LocationName);
-            return base.HandleEvent(E);
+            var loc = APStaticData.Locations[Location];
+            var item = The.Player.FindObjectInInventory(loc.Blueprint);
+            if (item != null && item.Count >= loc.Amount)
+            {
+                item.Count -= loc.Amount;
+                APGame.Instance.CheckLocation(Location);
+                return true;
+            }
+            else
+            {
+                XRL.UI.Popup.Show("That is not enough.");
+                return false;
+            }
         }
     }
 }
