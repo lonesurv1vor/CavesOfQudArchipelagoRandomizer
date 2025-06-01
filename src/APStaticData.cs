@@ -8,7 +8,6 @@ using XRL;
 [System.Serializable]
 public class LocationInfo
 {
-    public string Name;
     public string Category;
     public string Type;
     public int Amount = 1;
@@ -18,11 +17,11 @@ public class LocationInfo
 [System.Serializable]
 public class ItemInfo
 {
-    public string Name;
     public string Category;
     public string Type;
     public int Amount = 1;
     public string Blueprint;
+    public string Population;
 }
 
 public static class APStaticData
@@ -43,8 +42,8 @@ public static class APStaticData
         string json = File.ReadAllText(
             _modPath + @"/Archipelago/worlds/cavesofqud/data/Locations.json"
         );
-        var items = JsonConvert.DeserializeObject<List<LocationInfo>>(json);
-        return items.ToDictionary(e => e.Name);
+        var locs = JsonConvert.DeserializeObject<Dictionary<string, LocationInfo>>(json);
+        return locs;
     }
 
     public static readonly Dictionary<string, ItemInfo> Items = LoadStaticItemDefs();
@@ -54,7 +53,7 @@ public static class APStaticData
         string json = File.ReadAllText(
             _modPath + @"/Archipelago/worlds/cavesofqud/data/Items.json"
         );
-        var items = JsonConvert.DeserializeObject<List<ItemInfo>>(json);
-        return items.ToDictionary(e => e.Name);
+        var items = JsonConvert.DeserializeObject<Dictionary<string, ItemInfo>>(json);
+        return items;
     }
 }

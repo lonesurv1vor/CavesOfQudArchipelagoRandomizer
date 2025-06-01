@@ -19,6 +19,6 @@
     DisplayText="Delay traps when in settlement"
     Category="Archipelago"
     Type="Checkbox"
-    Default="No"
+    Default="Yes"
   />
 </options>

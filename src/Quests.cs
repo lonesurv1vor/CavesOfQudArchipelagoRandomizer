@@ -30,24 +30,24 @@ namespace APConversations
             foreach (
                 var loc in APStaticData
                     .Locations.Where(l => l.Value.Type == "delivery")
-                    .OrderBy(l => l.Value.Name)
+                    .OrderBy(l => l.Key)
             )
             {
-                if (!APGame.Instance.LocationChecked(loc.Value.Name))
+                if (!APGame.Instance.LocationChecked(loc.Key))
                 {
                     var choice = E.Element.AddChoice(null, null, "APDeliveryList");
-                    choice.AddPart(new DeliverItem(loc.Value.Name));
+                    choice.AddPart(new DeliverItem(loc.Key));
 
                     var item = The.Player.FindObjectInInventory(loc.Value.Blueprint);
                     if (item != null && item.Count >= loc.Value.Amount)
                     {
                         choice.Text =
-                            $"{loc.Value.Name} {{{{|&B[{item?.Count ?? 0}/{loc.Value.Amount}]}}}}";
+                            $"{loc.Key} {{{{|&B[{item?.Count ?? 0}/{loc.Value.Amount}]}}}}";
                     }
                     else
                     {
                         choice.Text =
-                            $"{loc.Value.Name} {{{{|&O[{item?.Count ?? 0}/{loc.Value.Amount}]}}}}";
+                            $"{loc.Key} {{{{|&O[{item?.Count ?? 0}/{loc.Value.Amount}]}}}}";
                     }
                 }
             }

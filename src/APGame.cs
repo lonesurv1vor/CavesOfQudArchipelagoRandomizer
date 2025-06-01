@@ -21,6 +21,7 @@ public class PersistentData : IComposite
     public int LocationsPerLevel;
 
     public int ItemIndex = 0;
+    public int RandomObjectIndex = 0;
 
     [NonSerialized] // Custom as Queue does not support Json serialization
     public Queue<Item> DelayedItems = new();
@@ -238,6 +239,32 @@ public class APGame : IPart
             GameLog.DisplayException(e);
             return false;
         }
+    }
+
+    private Random _objectRandom = null;
+
+    public PopulationResult GetRandomFromPopulation(string population)
+    {
+        if (_objectRandom == null)
+        {
+            if (Data.Seed == null || Data.Seed == "")
+            {
+                throw new Exception("Seed not initialized yet");
+            }
+
+            _objectRandom = XRL.Rules.Stat.GetSeededRandomGenerator(Data.Seed);
+            for (int i = 0; i < Data.RandomObjectIndex; i++)
+            {
+                _objectRandom.Next();
+            }
+        }
+
+        var res = PopulationManager
+            .Populations[population]
+            .Generate()
+            .GetRandomElement(_objectRandom);
+        Data.RandomObjectIndex++;
+        return res;
     }
 
     public void SetGoalAchieved()

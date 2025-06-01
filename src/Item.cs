@@ -1,6 +1,7 @@
 using UnityEngine;
 using XRL;
 using XRL.World;
+using XRL.World.Loaders;
 using XRL.World.Parts.Skill;
 
 [System.Serializable]
@@ -40,6 +41,16 @@ public class Item : IComposite
         return def != null && def.Type == "item";
     }
 
+    public bool IsRandomItem()
+    {
+        if (!APStaticData.Items.ContainsKey(Name))
+        {
+            return false;
+        }
+        var def = APStaticData.Items[Name];
+        return def != null && def.Type == "randomItem";
+    }
+
     public bool IsLiquid()
     {
         if (!APStaticData.Items.ContainsKey(Name))
@@ -53,6 +64,11 @@ public class Item : IComposite
     public string Blueprint()
     {
         return APStaticData.Items[Name].Blueprint;
+    }
+
+    public string Population()
+    {
+        return APStaticData.Items[Name].Population;
     }
 
     public int Amount()
@@ -91,28 +107,45 @@ public static class Items
             BombTrap(item.Blueprint());
             return;
         }
-        else
+        else if (item.IsItem())
         {
             GameLog.LogGameplay($"Received '{item.Name}'", APLocalOptions.PopupOnReceivedItem);
-        }
 
-        if (item.IsItem())
-        {
             for (int i = 0; i < item.Amount(); i++)
             {
                 The.Player.Inventory.AddObject(item.Blueprint());
             }
+
             return;
         }
-        else if (item.IsLiquid())
+        else if (item.IsRandomItem())
         {
-            The.Player.GiveDrams(item.Amount(), item.Blueprint());
+            // TODO mod chance
+            var pop = APGame.Instance.GetRandomFromPopulation(item.Population());
+
+            var bp = GameObjectFactory.Factory.GetBlueprint(pop.Blueprint);
+            GameLog.LogGameplay(
+                $"Received {pop.Number} '{bp.DisplayName()}'",
+                APLocalOptions.PopupOnReceivedItem
+            );
+
+            for (int i = 0; i < pop.Number; i++)
+            {
+                The.Player.Inventory.AddObject(bp.Name);
+            }
+
             return;
         }
+        // else if (item.IsLiquid())
+        // {
+        //     GameLog.LogGameplay($"Received {item.Amount()} '{first.DisplayName}'", APLocalOptions.PopupOnReceivedItem);
+        //     The.Player.GiveDrams(item.Amount(), item.Blueprint());
+        //     return;
+        // }
         // TODO
         else if (item.Name.StartsWith("Unlock: "))
         {
-            // Quest unlock, nothing to do
+            GameLog.LogGameplay($"Received '{item.Name}'", APLocalOptions.PopupOnReceivedItem);
             return;
         }
         else
@@ -145,14 +178,27 @@ public static class Items
 
     private static void BombTrap(string blueprint)
     {
-        var amount = Random.Range(1, 6);
-        for (var i = 0; i < amount; i++)
+        if (blueprint == "HandENuke")
         {
-            int dist = Random.Range(3, 10);
-            int countdown = Random.Range(3, 8);
+            int dist = Random.Range(10, 20);
+            int countdown = Random.Range(10, 25);
             var obj = GameObjectFactory.create(blueprint);
             var bomb = Tinkering_LayMine.CreateBomb(obj, The.Player, countdown);
             The.Player.GetCurrentCell().GetRandomLocalAdjacentCellAtRadius(dist).AddObject(bomb);
+        }
+        else
+        {
+            var amount = Random.Range(2, 8);
+            for (var i = 0; i < amount; i++)
+            {
+                int dist = Random.Range(3, 10);
+                int countdown = Random.Range(3, 8);
+                var obj = GameObjectFactory.create(blueprint);
+                var bomb = Tinkering_LayMine.CreateBomb(obj, The.Player, countdown);
+                The.Player.GetCurrentCell()
+                    .GetRandomLocalAdjacentCellAtRadius(dist)
+                    .AddObject(bomb);
+            }
         }
     }
 }
