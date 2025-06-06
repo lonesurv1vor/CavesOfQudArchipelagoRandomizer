@@ -243,6 +243,7 @@ public class APGame : IPart
 
     private Random _objectRandom = null;
 
+    // Only meant for received AP items (items or traps) - uses its own randomizer to always obtain the same results, even after reload
     public PopulationResult GetRandomFromPopulation(string population)
     {
         if (_objectRandom == null)
@@ -259,8 +260,14 @@ public class APGame : IPart
             }
         }
 
+        if (!PopulationManager.Populations.ContainsKey(population))
+        {
+            throw new Exception($"Unknown population {population}");
+        }
+
         var res = PopulationManager
             .Populations[population]
+            // TODO this doesn't really work as expected as Generate() also contains randomness
             .Generate()
             .GetRandomElement(_objectRandom);
         Data.RandomObjectIndex++;
