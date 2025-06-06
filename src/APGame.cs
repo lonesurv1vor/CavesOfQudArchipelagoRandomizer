@@ -197,7 +197,7 @@ public class APGame : IPart
         }
         else
         {
-            throw new Exception("Location '{loc}' is neither missing nor checked");
+            throw new Exception($"Location '{loc}' is neither missing nor checked");
         }
     }
 

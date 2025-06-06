@@ -95,28 +95,30 @@ public class PlayerQuestMod : IPart
 {
     public override bool WantEvent(int ID, int cascade)
     {
-        return ID == QuestFinishedEvent.ID;
+        return ID == QuestStepFinishedEvent.ID;
     }
 
-    public override bool HandleEvent(QuestFinishedEvent E)
+    public override bool HandleEvent(QuestStepFinishedEvent E)
     {
-        if (APGame.Instance.IsLocation(E.Quest.Name))
+        var combinedName = $"{E.Quest.Name}~{E.Step.Name}";
+
+        if (APGame.Instance.IsLocation(combinedName))
         {
-            APGame.Instance.CheckLocation(E.Quest.Name);
+            APGame.Instance.CheckLocation(combinedName);
 
             // Goal
             if (
                 (
                     APGame.Instance.Data.Goal == 0
-                    && E.Quest.Name == "Fetch Argyve a Knickknack~Return to Argyve"
+                    && combinedName == "Fetch Argyve a Knickknack~Return to Argyve"
                 )
                 || (
                     APGame.Instance.Data.Goal == 1
-                    && E.Quest.Name == "More Than a Willing Spirit~Return to Grit Gate"
+                    && combinedName == "More Than a Willing Spirit~Return to Grit Gate"
                 )
                 || (
                     APGame.Instance.Data.Goal == 2
-                    && E.Quest.Name == "Decoding the Signal~Return to Grit Gate"
+                    && combinedName == "Decoding the Signal~Return to Grit Gate"
                 )
             )
             {
