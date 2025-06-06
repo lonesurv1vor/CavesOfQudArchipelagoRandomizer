@@ -1,7 +1,7 @@
+using Qud.API;
 using UnityEngine;
 using XRL;
 using XRL.World;
-using XRL.World.Loaders;
 using XRL.World.Parts.Skill;
 
 [System.Serializable]
@@ -66,6 +66,11 @@ public class Item : IComposite
         return APStaticData.Items[Name].Blueprint;
     }
 
+    public string Type()
+    {
+        return APStaticData.Items[Name].Type;
+    }
+
     public string Population()
     {
         return APStaticData.Items[Name].Population;
@@ -103,8 +108,19 @@ public static class Items
                 APLocalOptions.PopupOnReceivedTrap
             );
 
-            // TODO improve
-            BombTrap(item.Blueprint());
+            switch (item.Type())
+            {
+                case "grenades":
+                    GrenadesTrap(item.Blueprint());
+                    break;
+                case "creatures":
+                    CreaturesTrap(item.Population());
+                    break;
+                default:
+                    GameLog.LogError($"Unknown trap type '{item.Type()}' with name '{item.Name}'");
+                    break;
+
+            }
             return;
         }
         else if (item.IsItem())
@@ -176,7 +192,7 @@ public static class Items
         GameLog.LogError($"Unknown item '{item.Name}' with id {item.Id}");
     }
 
-    private static void BombTrap(string blueprint)
+    private static void GrenadesTrap(string blueprint)
     {
         if (blueprint == "HandENuke")
         {
@@ -198,6 +214,28 @@ public static class Items
                 The.Player.GetCurrentCell()
                     .GetRandomLocalAdjacentCellAtRadius(dist)
                     .AddObject(bomb);
+            }
+        }
+    }
+
+    private static void CreaturesTrap(string population)
+    {
+        if (!PopulationManager.Populations.ContainsKey(population))
+        {
+            throw new System.Exception($"Unknown population {population}");
+        }
+
+        // TODO reliable repeatable results
+        var pop = PopulationManager.Populations[population].Generate();
+
+        foreach (var item in pop)
+        {
+            for (int i = 0; i < item.Number; i++)
+            {
+                int dist = Random.Range(3, 10);
+                var obj = GameObjectFactory.create(item.Blueprint);
+                The.Player.GetCurrentCell()
+                    .GetRandomLocalAdjacentCellAtRadius(dist).AddObject(obj);
             }
         }
     }

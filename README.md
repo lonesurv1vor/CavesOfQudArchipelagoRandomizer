@@ -1,22 +1,58 @@
-The APWorld definition can be found here: https://github.com/lonesurv1vor/Archipelago/tree/main/worlds/cavesofqud
-
 # Features
-* Locations are checked by gaining XP and on completing some quests. The amount of checks per level can be configured as well as the max level to include as location.
-* Level up gains (HP, mutation points, skill points, attribute points / bonus) are received as items
-* Goal can be set to the completion of "Decoding the signal" or "More than a willing spirit"
-* A couple of random filler items and traps
+* Locations to check:
+  * By gaining XP. The amount of checks per level can be configured.
+  * Main quest and some side quest steps
+  * Deliver items to Argyve or the Grit Gate Intercom (talk with them to see a list).
+* Items to receive:
+  * Level up gains (HP, mutation points, skill points, attribute points / bonus). These are
+    considered the main progress mechanic because they mainly limit what a player can do and where
+    they can go.
+  * Some steps of the main quest need an item for being unlocked
+  * A ton of filler items to receive into the inventory, picked randomly from the games population
+    tables. This can contain garbage as well as high tier weapons or other stuff.
+  * Grenade traps: Spawns a couple of grenades/bombs around the player with random timers
+  * Creature traps: Spawns a party of creatures around the player (they might not be hostile
+    depending on the standing).
+* Settings:
+  * Goal: One of the early main quests. This also determines the max level base after that no more
+    checks are send (and no more stat ups gained).
+  * LocationsPerLevel: How many locations shall there be per player level. Increase this to get more
+    filler items and traps.
+  * ExtraLocationLevels: Additional levels beyond the recommended level for starting the main quests
+    included in checks (and received stat ups)
+  * TrapPercentage: The percentage of filler items replaced by traps
 
-# Known problems
-* There is no balance at all, the item placement is completely random. Since there are no hard blockers in the game that prevent one from reaching the goal, it should be mostly fine for now. Another players important early item might be placed late in Caves of Qud though, so some !getitem might be needed.
-* Rapid mutation advancement seems to be kind of bugged and not giving 3 extra points but only 1 (at least that happened in my test session)
-* Certain gained stats might not be increased correctly on gaining other stats (e.g. gaining an intelligence boost might not increase the total skill points)
-* Game might ask for a reconnect when restoring an earlier game state (or not, in that case it is currently advised to save and quit and reload the game to get back in sync)
-* All traps are reapplied when loading an earlier game state. This might mess things up.
+# Current state and known problems
+
+* Spheres of progression are mainly bound to the players level and the main quest progress. It
+  should work fairly well know, you shouldn't encounter required early items on late checks. But it
+  is still to be tested and also still WIP.
+* Delivery quests are an arbitrary set of items (mostly injectors), these are WIP.
+* Traps can be disastrous to the game when triggering at the wrong moment (e.g. when hitting
+  important npcs). There is an in game option to delay received traps
+  until leaving a settlement - but that might still mess things up.
+* Traps are completely random, so you might encounter a very dangerous enemy very early (but I think
+  it adds to the fun if it happens occasionally).
+* Traps are received again when reloading a checkpoint / save or starting a new character on a
+  running game.
+* Certain gained stats might not be increased correctly on gaining other stats (e.g. gaining an
+  intelligence boost might not increase the total skill points)
+
+In general, besides being incomplete and WIP, I think it is very playable now.
 
 # Installation and creating a game
-* Download the mod zip file, the APWorld and the yaml from the release page.
-* Extract the mod to your caves of qud Mods folder found under `%USERPROFILE%\AppData\LocalLow\Freehold Games\CavesOfQud\Mods` (on Windows). The mod shoud have its own directory under `Mods`, e.g. `Mods/Archipelago`
-* Install the APWorld file as usual and either generate the template files using the Archipelago launcher or use the provided yaml to generate your game
-* Start Caves of Qud and enable the mod under "Mods", then start a new game.
-* It's recommended to 1) play roleplay mode, so you don't need to start over when dying, and 2) choose a mutant. And only Joppa start is supported (others work as well but the Joppa related quest locations are unreachable then).
-* When creating a new character, the connection is opened after the character has been created. If the connection fails, the game will hang. This does not happen when loading an already saved game later on.
+* Download the mod zip file and the APWorld from the release page
+* Extract the mod to your caves of qud Mods folder found under
+  `%USERPROFILE%\AppData\LocalLow\Freehold Games\CavesOfQud\Mods` (on Windows). The mod shoud have its
+  own directory under `Mods`, e.g. `Mods/CavesOfQudArchipelagoRandomizer`. IMPORTANT: Do not rename
+  the mod folder - this breaks the mod.
+* Install the APWorld file as usual and either generate the template files using the Archipelago
+  launcher. This also generates the yaml config file.
+* Start Caves of Qud and enable or approve the mod under "Mods", then start a new game.
+* It's recommended to 1) play roleplay mode, so you don't need to start over when dying, and 2)
+  choose a mutant. And only Joppa start is currently supported.
+* When creating a new character, the connection is opened after the character has been created. If
+  the connection fails, the game will hang. This does not happen when loading an already saved game
+  later on.
+* When reloading a previous checkpoint / save or loading a saved game, it will NOT prompt for
+  connection info again. This only happens if the connection fails.
