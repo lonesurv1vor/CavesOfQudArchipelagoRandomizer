@@ -21,4 +21,11 @@
     Type="Checkbox"
     Default="Yes"
   />
+  <option
+    ID="lonesurv1vor_archipelago_OptionEnableDebugLog"
+    DisplayText="Enable debug logging"
+    Category="Archipelago"
+    Type="Checkbox"
+    Default="No"
+  />
 </options>

@@ -67,7 +67,8 @@ public static class GameLog
 
     public static void LogDebug(string message)
     {
-        XRL.Messages.MessageQueue.AddPlayerMessage(FormatDebug(message));
+        if (APLocalOptions.EnableDebugLog)
+            XRL.Messages.MessageQueue.AddPlayerMessage(FormatDebug(message));
     }
 
     public static void LogError(string message, bool popup = false)

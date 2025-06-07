@@ -119,7 +119,6 @@ public static class Items
                 default:
                     GameLog.LogError($"Unknown trap type '{item.Type()}' with name '{item.Name}'");
                     break;
-
             }
             return;
         }
@@ -234,8 +233,7 @@ public static class Items
             {
                 int dist = Random.Range(3, 10);
                 var obj = GameObjectFactory.create(item.Blueprint);
-                The.Player.GetCurrentCell()
-                    .GetRandomLocalAdjacentCellAtRadius(dist).AddObject(obj);
+                The.Player.GetCurrentCell().GetRandomLocalAdjacentCellAtRadius(dist).AddObject(obj);
             }
         }
     }

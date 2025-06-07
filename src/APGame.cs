@@ -49,6 +49,8 @@ public static class APLocalOptions
         Options.GetOptionBool("lonesurv1vor_archipelago_OptionPopupOnReceivedItem");
     public static bool PopupOnReceivedTrap =>
         Options.GetOptionBool("lonesurv1vor_archipelago_OptionPopupOnReceivedTrap");
+    public static bool EnableDebugLog =>
+        Options.GetOptionBool("lonesurv1vor_archipelago_OptionEnableDebugLog");
 }
 
 [Serializable]
