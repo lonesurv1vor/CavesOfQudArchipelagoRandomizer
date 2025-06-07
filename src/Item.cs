@@ -88,18 +88,34 @@ public static class Items
     {
         if (item.IsTrap())
         {
+            // Do not retrigger traps if they have been triggered already. Otherwise one could get a ton of traps at once
+            // when reloading a checkpoint or starting a new chracter. This needs to work independent of the persistent game state,
+            // thus this index is stored in the AP servers data storage.
+            int seenIndex = APSession.GetDataStorageEntry<int?>("LastTrapSeenIndex") ?? 0;
+            if (!APLocalOptions.RetriggerTraps && item.Index <= seenIndex)
+            {
+                GameLog.LogDebug(
+                    $"Skipped received '{item.Name}' with index {item.Index} as it was already triggered (last seen index = {seenIndex})"
+                );
+                return;
+            }
+
             if (The.Player.OnWorldMap())
             {
                 APGame.Instance.Data.DelayedItems.Enqueue(item);
-                GameLog.LogDebug($"Receive of '{item.Name}' delayed until exiting the world map");
+                GameLog.LogDebug(
+                    $"Triggering of '{item.Name}' delayed until exiting the world map"
+                );
                 return;
             }
             else if (
-                APLocalOptions.DelayTrapsInSettlements && The.Player.CurrentZone.IsCheckpoint()
+                !APLocalOptions.AllowTrapsInSettlements && The.Player.CurrentZone.IsCheckpoint()
             )
             {
                 APGame.Instance.Data.DelayedItems.Enqueue(item);
-                GameLog.LogDebug($"Receive of '{item.Name}' delayed until exiting the settlement");
+                GameLog.LogDebug(
+                    $"Triggering of '{item.Name}' delayed until exiting the settlement"
+                );
                 return;
             }
 
@@ -120,7 +136,9 @@ public static class Items
                     GameLog.LogError($"Unknown trap type '{item.Type()}' with name '{item.Name}'");
                     break;
             }
-            return;
+
+            // Make sure this trap doesn't trigger again
+            APSession.SetDataStorageEntry("LastTrapSeenIndex", item.Index);
         }
         else if (item.IsItem())
         {
@@ -130,8 +148,6 @@ public static class Items
             {
                 The.Player.Inventory.AddObject(item.Blueprint());
             }
-
-            return;
         }
         else if (item.IsRandomItem())
         {
@@ -148,20 +164,16 @@ public static class Items
             {
                 The.Player.Inventory.AddObject(bp.Name);
             }
-
-            return;
         }
         // else if (item.IsLiquid())
         // {
         //     GameLog.LogGameplay($"Received {item.Amount()} '{first.DisplayName}'", APLocalOptions.PopupOnReceivedItem);
         //     The.Player.GiveDrams(item.Amount(), item.Blueprint());
-        //     return;
         // }
         // TODO
         else if (item.Name.StartsWith("Unlock: "))
         {
             GameLog.LogGameplay($"Received '{item.Name}'", APLocalOptions.PopupOnReceivedItem);
-            return;
         }
         else
         {
@@ -185,10 +197,11 @@ public static class Items
                 case "Rapid Mutation Advancement":
                     The.Player.GetPart<PlayerStatsMod>().RapidMutationAdvancement();
                     return;
+                default:
+                    GameLog.LogError($"Unknown item '{item.Name}' with id {item.Id}");
+                    break;
             }
         }
-
-        GameLog.LogError($"Unknown item '{item.Name}' with id {item.Id}");
     }
 
     private static void GrenadesTrap(string blueprint)

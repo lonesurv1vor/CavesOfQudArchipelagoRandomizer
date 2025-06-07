@@ -43,12 +43,14 @@ public class PersistentData : IComposite
 
 public static class APLocalOptions
 {
-    public static bool DelayTrapsInSettlements =>
-        Options.GetOptionBool("lonesurv1vor_archipelago_OptionDelayTrapsInSettlements");
     public static bool PopupOnReceivedItem =>
         Options.GetOptionBool("lonesurv1vor_archipelago_OptionPopupOnReceivedItem");
     public static bool PopupOnReceivedTrap =>
         Options.GetOptionBool("lonesurv1vor_archipelago_OptionPopupOnReceivedTrap");
+    public static bool AllowTrapsInSettlements =>
+        Options.GetOptionBool("lonesurv1vor_archipelago_OptionAllowTrapsInSettlements");
+    public static bool RetriggerTraps =>
+        Options.GetOptionBool("lonesurv1vor_archipelago_OptionRetriggerTraps");
     public static bool EnableDebugLog =>
         Options.GetOptionBool("lonesurv1vor_archipelago_OptionEnableDebugLog");
 }
@@ -324,7 +326,7 @@ public class APGame : IPart
     {
         if (
             !E.Zone.IsWorldMap()
-            && (!APLocalOptions.DelayTrapsInSettlements || !E.Zone.IsCheckpoint())
+            && (APLocalOptions.AllowTrapsInSettlements || !E.Zone.IsCheckpoint())
         )
         {
             while (Data.DelayedItems.TryDequeue(out Item item))

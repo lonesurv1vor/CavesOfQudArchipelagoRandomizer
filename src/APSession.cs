@@ -184,10 +184,19 @@ public static class APSession
         var dseType = _assembly.GetType("Archipelago.MultiClient.Net.Models.DataStorageElement");
 
         // Conversion to a DataStorageElement using one of the implicit operator definitions
-        var opMethod = dseType.GetMethod("op_Implicit", BindingFlags.Static | BindingFlags.Public, null, new[] { value.GetType() }, null);
+        var opMethod = dseType.GetMethod(
+            "op_Implicit",
+            BindingFlags.Static | BindingFlags.Public,
+            null,
+            new[] { value.GetType() },
+            null
+        );
         object dseValue = opMethod.Invoke(null, new object[] { value });
 
-        var setMethod = _dataStorage.GetType().GetProperty("Item", new Type[] { scopeType, typeof(string) }).GetSetMethod();
+        var setMethod = _dataStorage
+            .GetType()
+            .GetProperty("Item", new Type[] { scopeType, typeof(string) })
+            .GetSetMethod();
         // scope 3 means this slot only
         setMethod.Invoke(_dataStorage, new object[] { 3, key, dseValue });
     }
@@ -196,7 +205,10 @@ public static class APSession
     {
         var scopeType = _assembly.GetType("Archipelago.MultiClient.Net.Enums.Scope");
 
-        var getMethod = _dataStorage.GetType().GetProperty("Item", new Type[] { scopeType, typeof(string) }).GetGetMethod();
+        var getMethod = _dataStorage
+            .GetType()
+            .GetProperty("Item", new Type[] { scopeType, typeof(string) })
+            .GetGetMethod();
         // scope 3 means this slot only
         var dseValue = getMethod.Invoke(_dataStorage, new object[] { 3, key });
 

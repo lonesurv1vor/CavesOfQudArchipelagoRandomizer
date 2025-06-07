@@ -2,24 +2,31 @@
 <options>
   <option
     ID="lonesurv1vor_archipelago_OptionPopupOnReceivedItem"
-    DisplayText="Show popup on item"
+    DisplayText="Show popup on received item"
     Category="Archipelago"
     Type="Checkbox"
     Default="Yes"
   />
   <option
     ID="lonesurv1vor_archipelago_OptionPopupOnReceivedTrap"
-    DisplayText="Show popup on trap"
+    DisplayText="Show popup on received trap"
     Category="Archipelago"
     Type="Checkbox"
     Default="Yes"
   />
   <option
-    ID="lonesurv1vor_archipelago_OptionDelayTrapsInSettlements"
-    DisplayText="Delay traps when in settlement"
+    ID="lonesurv1vor_archipelago_OptionAllowTrapsInSettlements"
+    DisplayText="Allow traps to trigger in settlements"
     Category="Archipelago"
     Type="Checkbox"
-    Default="Yes"
+    Default="No"
+  />
+  <option
+    ID="lonesurv1vor_archipelago_OptionRetriggerTraps"
+    DisplayText="Retrigger traps when loading an earlier game state"
+    Category="Archipelago"
+    Type="Checkbox"
+    Default="No"
   />
   <option
     ID="lonesurv1vor_archipelago_OptionEnableDebugLog"
