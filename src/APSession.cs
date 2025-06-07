@@ -23,6 +23,7 @@ public static class APSession
     private static object _messageLog;
     private static object _roomState;
     private static object _dataStorage;
+    private static object _deathLink;
 
     public static bool Connect(
         string host,
@@ -47,6 +48,11 @@ public static class APSession
         _messageLog = _session.GetType().GetProperty("MessageLog").GetValue(_session);
         _roomState = _session.GetType().GetProperty("RoomState").GetValue(_session);
         _dataStorage = _session.GetType().GetProperty("DataStorage").GetValue(_session);
+
+        var deathLinkProvider = _assembly.GetType(
+            "Archipelago.MultiClient.Net.BounceFeatures.DeathLink.DeathLinkProvider"
+        );
+        _deathLink = deathLinkProvider.GetMethod("CreateDeathLinkService").Invoke(null, new object[] { _session });
 
         return Reconnect(out slotData, out errors);
     }
@@ -178,6 +184,24 @@ public static class APSession
         _session.GetType().GetMethod("SetGoalAchieved").Invoke(_session, null);
     }
 
+    public static void EnableDeathLink()
+    {
+        _deathLink.GetType().GetMethod("EnableDeathLink").Invoke(_deathLink, null);
+    }
+
+    public static void DisableDeathLink()
+    {
+        _deathLink.GetType().GetMethod("DisableDeathLink").Invoke(_deathLink, null);
+    }
+
+    public static void SendDeathLink(string player, string cause)
+    {
+        var deathLinkType = _assembly.GetType("Archipelago.MultiClient.Net.BounceFeatures.DeathLink.DeathLink");
+        object deathLink = deathLinkType.GetConstructor(new Type[] { typeof(string), typeof(string) }).Invoke(new object[] { player, cause });
+
+        _deathLink.GetType().GetMethod("SendDeathLink").Invoke(_deathLink, new object[] { deathLink });
+    }
+
     public static void SetDataStorageEntry<T>(string key, T value)
     {
         var scopeType = _assembly.GetType("Archipelago.MultiClient.Net.Enums.Scope");
@@ -222,6 +246,7 @@ public static class APSession
     // private static Delegate _packetReceivedDelegate;
     private static Delegate _onMessageReceivedDelegate;
     private static Delegate _itemReceivedDelegate;
+    private static Delegate _onDeathLinkReceivedDelegate;
     private static Delegate _errorReceivedDelegate;
 
     private static void AddEventHandlers()
@@ -261,6 +286,19 @@ public static class APSession
         }
 
         {
+            var ev = _deathLink.GetType().GetEvent("OnDeathLinkReceived");
+            _onDeathLinkReceivedDelegate = Delegate.CreateDelegate(
+                ev.EventHandlerType,
+                null,
+                typeof(APSession).GetMethod(
+                    "OnDeathLinkReceived",
+                    BindingFlags.Static | BindingFlags.NonPublic
+                )
+            );
+            ev.AddEventHandler(_deathLink, _onDeathLinkReceivedDelegate);
+        }
+
+        {
             var ev = _socket.GetType().GetEvent("ErrorReceived");
             _errorReceivedDelegate = Delegate.CreateDelegate(
                 ev.EventHandlerType,
@@ -293,6 +331,11 @@ public static class APSession
         {
             var ev = _items.GetType().GetEvent("ItemReceived");
             ev.RemoveEventHandler(_items, _itemReceivedDelegate);
+        }
+
+        {
+            var ev = _deathLink.GetType().GetEvent("OnDeathLinkReceived");
+            ev.RemoveEventHandler(_deathLink, _onDeathLinkReceivedDelegate);
         }
 
         {
@@ -332,6 +375,14 @@ public static class APSession
         var id = (long)item.GetType().GetProperty("ItemId").GetValue(item);
 
         APEvents.OnItemReceived(id, name, index);
+    }
+
+    private static void OnDeathLinkReceived(object data)
+    {
+        var source = (string)data.GetType().GetProperty("Source").GetValue(data);
+        var cause = (string)data.GetType().GetProperty("Cause").GetValue(data);
+
+        APEvents.OnDeathLinkReceived(source, cause);
     }
 
     private static void OnSocketErrorReceived(Exception E, string message)

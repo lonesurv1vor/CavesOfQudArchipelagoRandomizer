@@ -29,6 +29,13 @@
     Default="No"
   />
   <option
+    ID="lonesurv1vor_archipelago_OptionDeathLink"
+    DisplayText="Enable DeathLink"
+    Category="Archipelago"
+    Type="Checkbox"
+    Default="No"
+  />
+  <option
     ID="lonesurv1vor_archipelago_OptionEnableDebugLog"
     DisplayText="Enable debug logging"
     Category="Archipelago"

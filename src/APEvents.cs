@@ -9,6 +9,10 @@ public static class APEvents
     public static ConcurrentQueue<QueuedLogMessage> Messages = new();
     public static ConcurrentQueue<Item> ReceivedItems = new();
 
+    private static readonly object _deathLinkLock = new();
+    private static string _deathLinkSource = "";
+    private static string _deathLinkCause = "";
+
     public static void ClearEvents()
     {
         Messages.Clear();
@@ -51,6 +55,27 @@ public static class APEvents
         catch (Exception e)
         {
             DisplayException(e);
+        }
+    }
+
+    public static void OnDeathLinkReceived(string source, string cause)
+    {
+        lock (_deathLinkLock)
+        {
+            _deathLinkSource = source;
+            _deathLinkCause = cause;
+        }
+    }
+
+    public static (string, string) GetDeathLink()
+    {
+        lock (_deathLinkLock)
+        {
+            var source = _deathLinkSource;
+            var cause = _deathLinkCause;
+            _deathLinkSource = "";
+            _deathLinkCause = "";
+            return (source, cause);
         }
     }
 

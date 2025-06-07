@@ -21,6 +21,12 @@
   * ExtraLocationLevels: Additional levels beyond the recommended level for starting the main quests
     included in checks (and received stat ups)
   * TrapPercentage: The percentage of filler items replaced by traps
+* Ingame options:
+  * Show popups or not when receiving items or traps
+  * Allow traps to be triggered in settlements or not
+  * Let traps trigger again or not after loading an earlier game state or starting a new character
+  * DeathLink (currently only as ingame option, can be changed any time)
+  * Show AP debug output or not
 
 # Current state and known problems
 
@@ -31,10 +37,8 @@
 * Traps can be disastrous to the game when triggering at the wrong moment (e.g. when hitting
   important npcs). There is an in game option to delay received traps
   until leaving a settlement - but that might still mess things up.
-* Traps are completely random, so you might encounter a very dangerous enemy very early (but I think
-  it adds to the fun if it happens occasionally).
-* Traps are received again when reloading a checkpoint / save or starting a new character on a
-  running game.
+* Traps are completely random regarding progression, so you might encounter a very dangerous enemy
+  very early (but I think it adds to the fun if it happens occasionally).
 * Certain gained stats might not be increased correctly on gaining other stats (e.g. gaining an
   intelligence boost might not increase the total skill points)
 

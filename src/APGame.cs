@@ -51,6 +51,8 @@ public static class APLocalOptions
         Options.GetOptionBool("lonesurv1vor_archipelago_OptionAllowTrapsInSettlements");
     public static bool RetriggerTraps =>
         Options.GetOptionBool("lonesurv1vor_archipelago_OptionRetriggerTraps");
+    public static bool DeathLink =>
+        Options.GetOptionBool("lonesurv1vor_archipelago_OptionDeathLink");
     public static bool EnableDebugLog =>
         Options.GetOptionBool("lonesurv1vor_archipelago_OptionEnableDebugLog");
 }
@@ -61,13 +63,6 @@ public class APGame : IPart
     public static APGame Instance => The.Player.GetPart<APGame>();
     public PersistentData Data = new();
 
-    public override bool WantEvent(int ID, int cascade)
-    {
-        if (ID == BeforeRenderEvent.ID || ID == ZoneActivatedEvent.ID)
-            return true;
-
-        return base.WantEvent(ID, cascade);
-    }
 
     public bool Setup()
     {
@@ -139,6 +134,9 @@ public class APGame : IPart
             Data.LocationsPerLevel = (int)(long)locationsPerLevel;
 
             SyncLocations();
+
+            if (APLocalOptions.DeathLink)
+                APSession.EnableDeathLink();
         }
         catch (Exception E)
         {
@@ -314,12 +312,42 @@ public class APGame : IPart
         }
     }
 
+    public override bool WantEvent(int ID, int cascade)
+    {
+        if (ID == BeforeRenderEvent.ID || ID == ZoneActivatedEvent.ID || ID == EndTurnEvent.ID || ID == AfterDieEvent.ID)
+            return true;
+
+        return base.WantEvent(ID, cascade);
+    }
+
+    public override bool HandleEvent(AfterDieEvent E)
+    {
+        if (APLocalOptions.DeathLink && (E.Reason == null || !E.Reason.StartsWith("DeathLink")))
+            APSession.SendDeathLink(Data.Name, E.Reason ?? "Unknown reason");
+
+        return base.HandleEvent(E);
+    }
+
+    public override bool HandleEvent(EndTurnEvent E)
+    {
+        // This does nothing if already set, so it's fine.
+        // TODO but this is not the best place for switching deathlink
+        if (APLocalOptions.DeathLink)
+            APSession.EnableDeathLink();
+        else
+            APSession.DisableDeathLink();
+
+        return base.HandleEvent(E);
+    }
+
     public override bool HandleEvent(BeforeRenderEvent E)
     {
+
         ProcessMessages();
+        ProcessDeathLink();
         ProcessReceivedItems();
 
-        return true;
+        return base.HandleEvent(E);
     }
 
     public override bool HandleEvent(ZoneActivatedEvent E)
@@ -335,7 +363,7 @@ public class APGame : IPart
             }
         }
 
-        return true;
+        return base.HandleEvent(E);
     }
 
     private void ProcessMessages()
@@ -352,6 +380,20 @@ public class APGame : IPart
             }
         }
     }
+
+    private void ProcessDeathLink()
+    {
+        if (!APLocalOptions.DeathLink)
+            return;
+
+        (string source, string cause) = APEvents.GetDeathLink();
+
+        if (source != null && source != "")
+        {
+            The.Player.Die(null, null, $"DeathLink from {source}: {cause}");
+        }
+    }
+
 
     private void ProcessReceivedItems()
     {
