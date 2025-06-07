@@ -22,6 +22,7 @@ public static class APSession
     private static object _locations;
     private static object _messageLog;
     private static object _roomState;
+    private static object _dataStorage;
 
     public static bool Connect(
         string host,
@@ -45,6 +46,7 @@ public static class APSession
         _locations = _session.GetType().GetProperty("Locations").GetValue(_session);
         _messageLog = _session.GetType().GetProperty("MessageLog").GetValue(_session);
         _roomState = _session.GetType().GetProperty("RoomState").GetValue(_session);
+        _dataStorage = _session.GetType().GetProperty("DataStorage").GetValue(_session);
 
         return Reconnect(out slotData, out errors);
     }
@@ -174,6 +176,35 @@ public static class APSession
     public static void SetGoalAchieved()
     {
         _session.GetType().GetMethod("SetGoalAchieved").Invoke(_session, null);
+    }
+
+    public static void SetDataStorageEntry<T>(string key, T value)
+    {
+        var scopeType = _assembly.GetType("Archipelago.MultiClient.Net.Enums.Scope");
+        var dseType = _assembly.GetType("Archipelago.MultiClient.Net.Models.DataStorageElement");
+
+        // Conversion to a DataStorageElement using one of the implicit operator definitions
+        var opMethod = dseType.GetMethod("op_Implicit", BindingFlags.Static | BindingFlags.Public, null, new[] { value.GetType() }, null);
+        object dseValue = opMethod.Invoke(null, new object[] { value });
+
+        var setMethod = _dataStorage.GetType().GetProperty("Item", new Type[] { scopeType, typeof(string) }).GetSetMethod();
+        // scope 3 means this slot only
+        setMethod.Invoke(_dataStorage, new object[] { 3, key, dseValue });
+    }
+
+    public static T GetDataStorageEntry<T>(string key)
+    {
+        var scopeType = _assembly.GetType("Archipelago.MultiClient.Net.Enums.Scope");
+
+        var getMethod = _dataStorage.GetType().GetProperty("Item", new Type[] { scopeType, typeof(string) }).GetGetMethod();
+        // scope 3 means this slot only
+        var dseValue = getMethod.Invoke(_dataStorage, new object[] { 3, key });
+
+        var toMethodGeneric = dseValue.GetType().GetMethod("To");
+        var toMethodSpecific = toMethodGeneric.MakeGenericMethod(typeof(T));
+        object value = toMethodSpecific.Invoke(dseValue, new object[] { });
+
+        return (T)value;
     }
 
     // private static Delegate _packetReceivedDelegate;
