@@ -127,10 +127,10 @@ public static class Items
             switch (item.Type())
             {
                 case "grenades":
-                    GrenadesTrap(item.Blueprint());
+                    GrenadesTrap(item);
                     break;
                 case "creatures":
-                    CreaturesTrap(item.Population());
+                    CreaturesTrap(item);
                     break;
                 default:
                     GameLog.LogError($"Unknown trap type '{item.Type()}' with name '{item.Name}'");
@@ -204,24 +204,24 @@ public static class Items
         }
     }
 
-    private static void GrenadesTrap(string blueprint)
+    private static void GrenadesTrap(Item item)
     {
-        if (blueprint == "HandENuke")
+        if (item.Blueprint() == "HandENuke")
         {
             int dist = Random.Range(10, 20);
             int countdown = Random.Range(10, 25);
-            var obj = GameObjectFactory.create(blueprint);
+            var obj = GameObjectFactory.create(item.Blueprint());
             var bomb = Tinkering_LayMine.CreateBomb(obj, The.Player, countdown);
             The.Player.GetCurrentCell().GetRandomLocalAdjacentCellAtRadius(dist).AddObject(bomb);
         }
         else
         {
-            var amount = Random.Range(2, 8);
+            var amount = Random.Range(3, 10);
             for (var i = 0; i < amount; i++)
             {
-                int dist = Random.Range(3, 10);
-                int countdown = Random.Range(3, 8);
-                var obj = GameObjectFactory.create(blueprint);
+                int dist = Random.Range(1, 10);
+                int countdown = Random.Range(3, 7);
+                var obj = GameObjectFactory.create(item.Blueprint());
                 var bomb = Tinkering_LayMine.CreateBomb(obj, The.Player, countdown);
                 The.Player.GetCurrentCell()
                     .GetRandomLocalAdjacentCellAtRadius(dist)
@@ -230,23 +230,27 @@ public static class Items
         }
     }
 
-    private static void CreaturesTrap(string population)
+    private static void CreaturesTrap(Item item)
     {
-        if (!PopulationManager.Populations.ContainsKey(population))
+        if (!PopulationManager.Populations.ContainsKey(item.Population()))
         {
-            throw new System.Exception($"Unknown population {population}");
+            throw new System.Exception($"Unknown population {item.Population()}");
         }
 
-        // TODO reliable repeatable results
-        var pop = PopulationManager.Populations[population].Generate();
-
-        foreach (var item in pop)
+        for (int a = 0; a < item.Amount(); a++)
         {
-            for (int i = 0; i < item.Number; i++)
+            // TODO reliable repeatable results
+            var pop = PopulationManager.Populations[item.Population()].Generate();
+
+            foreach (var it in pop)
             {
-                int dist = Random.Range(3, 10);
-                var obj = GameObjectFactory.create(item.Blueprint);
-                The.Player.GetCurrentCell().GetRandomLocalAdjacentCellAtRadius(dist).AddObject(obj);
+
+                for (int i = 0; i < it.Number; i++)
+                {
+                    int dist = Random.Range(2, 10);
+                    var obj = GameObjectFactory.create(it.Blueprint);
+                    The.Player.GetCurrentCell().GetRandomLocalAdjacentCellAtRadius(dist).AddObject(obj);
+                }
             }
         }
     }
