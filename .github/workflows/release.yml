@@ -16,8 +16,21 @@ jobs:
     - name: Create artifacts
       run: |
         make package
+    - name: Create templates
+      run: |
+        # tmp: apply patch to allow running remplate generator without file browser
+        # Can be removed when world def is rebased on 0.6.2
+        pushd Archipelago
+        git remote add parent https://github.com/ArchipelagoMW/Archipelago/
+        git fetch parent 2c72b5762e60587ed684bd3ff0d57d8d117ab815
+        git cherry-pick --no-commit 2c72b5762e60587ed684bd3ff0d57d8d117ab815
+        # Install all dependencies
+        find -name "requirements.txt" -exec python -m pip install -r "{}" \;
+        popd
+        make template
     - uses: ncipollo/release-action@v1
       with:
-        artifacts: "bin/*.zip,bin/*.apworld"
+        artifacts: "bin/*.zip,bin/*.apworld,Archipelago/Players/Templates/*Qud.yaml"
         draft: true
         generateReleaseNotes: true
+        artifactErrorsFailBuild: true
