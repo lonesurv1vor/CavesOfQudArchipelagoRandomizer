@@ -61,14 +61,14 @@ public class PlayerStatsMod : IPart
         int gain = leveler.RollHP(ParentObject.genotypeEntry.BaseHPGain);
         ParentObject.GetStat("Hitpoints").BaseValue += gain;
 
-        GameLog.LogGameplay($"Granted {gain} hitpoints!");
+        GameLog.LogGameplay($"Granted {gain} hitpoints!", APLocalOptions.PopupOnReceivedItem);
     }
 
     public void AddAttributePoints()
     {
         ParentObject.GetStat("AP").BaseValue += 1;
 
-        GameLog.LogGameplay("Granted one attribute point!");
+        GameLog.LogGameplay("Granted one attribute point!", APLocalOptions.PopupOnReceivedItem);
     }
 
     public void AddAttributeBonus()
@@ -80,7 +80,7 @@ public class PlayerStatsMod : IPart
         ParentObject.GetStat("Toughness").BaseValue += 1;
         ParentObject.GetStat("Ego").BaseValue += 1;
 
-        GameLog.LogGameplay("Granted one of each attribute!");
+        GameLog.LogGameplay("Granted one of each attribute!", APLocalOptions.PopupOnReceivedItem);
     }
 
     public void AddMutationPoints()
@@ -91,7 +91,7 @@ public class PlayerStatsMod : IPart
             // TODO this is not quite correct, use GetFor
             int gain = leveler.RollMP(ParentObject.genotypeEntry.BaseMPGain);
             ParentObject.GainMP(gain);
-            GameLog.LogGameplay($"Granted {gain} mutation points!");
+            GameLog.LogGameplay($"Granted {gain} mutation points!", APLocalOptions.PopupOnReceivedItem);
         }
         else
         {
@@ -106,7 +106,7 @@ public class PlayerStatsMod : IPart
         var leveler = ParentObject.GetPart<Leveler>();
         int gain = leveler.RollSP(ParentObject.genotypeEntry.BaseSPGain);
         ParentObject.GetStat("SP").BaseValue += gain;
-        GameLog.LogGameplay($"Granted {gain} skill points!");
+        GameLog.LogGameplay($"Granted {gain} skill points!", APLocalOptions.PopupOnReceivedItem);
     }
 
     public void RapidMutationAdvancement()
@@ -115,7 +115,7 @@ public class PlayerStatsMod : IPart
         if (!ParentObject.IsEsper())
         {
             Leveler.RapidAdvancement(3, ParentObject);
-            GameLog.LogGameplay($"Granted a rapid mutation advancement!");
+            GameLog.LogGameplay($"Granted a rapid mutation advancement!", APLocalOptions.PopupOnReceivedItem);
         }
         else
         {
