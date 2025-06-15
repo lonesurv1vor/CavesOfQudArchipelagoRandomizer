@@ -110,7 +110,7 @@ public class PlayerQuestMod : IPart
             if (
                 (
                     APGame.Instance.Data.Goal == 0
-                    && combinedName == "Fetch Argyve a Knickknack~Return to Argyve"
+                    && combinedName == "Weirdwire Conduit... Eureka!~Return to Argyve"
                 )
                 || (
                     APGame.Instance.Data.Goal == 1
@@ -119,6 +119,14 @@ public class PlayerQuestMod : IPart
                 || (
                     APGame.Instance.Data.Goal == 2
                     && combinedName == "Decoding the Signal~Return to Grit Gate"
+                )
+                || (
+                    APGame.Instance.Data.Goal == 3
+                    && combinedName == "The Earl of Omonporch~Return to Grit Gate"
+                )
+                || (
+                    APGame.Instance.Data.Goal == 4
+                    && combinedName == "A Call to Arms~Defend Grit Gate"
                 )
             )
             {
