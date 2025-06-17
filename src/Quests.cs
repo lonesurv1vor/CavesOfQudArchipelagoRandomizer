@@ -102,37 +102,37 @@ public class PlayerQuestMod : IPart
     {
         var combinedName = $"{E.Quest.Name}~{E.Step.Name}";
 
-        if (APGame.Instance.IsLocation(combinedName))
+        // Goal reached?
+        if (
+            (
+                APGame.Instance.Data.Goal == 0
+                && combinedName == "Weirdwire Conduit... Eureka!~Return to Argyve"
+            )
+            || (
+                APGame.Instance.Data.Goal == 1
+                && combinedName == "More Than a Willing Spirit~Return to Grit Gate"
+            )
+            || (
+                APGame.Instance.Data.Goal == 2
+                && combinedName == "Decoding the Signal~Return to Grit Gate"
+            )
+            || (
+                APGame.Instance.Data.Goal == 3
+                && combinedName == "The Earl of Omonporch~Return to Grit Gate"
+            )
+            || (
+                APGame.Instance.Data.Goal == 4
+                && combinedName == "A Call to Arms~Defend Grit Gate"
+            )
+        )
+        {
+            APGame.Instance.SetGoalAchieved();
+        }
+        else if (APGame.Instance.IsLocation(combinedName))
         {
             APGame.Instance.CheckLocation(combinedName);
-
-            // Goal
-            if (
-                (
-                    APGame.Instance.Data.Goal == 0
-                    && combinedName == "Weirdwire Conduit... Eureka!~Return to Argyve"
-                )
-                || (
-                    APGame.Instance.Data.Goal == 1
-                    && combinedName == "More Than a Willing Spirit~Return to Grit Gate"
-                )
-                || (
-                    APGame.Instance.Data.Goal == 2
-                    && combinedName == "Decoding the Signal~Return to Grit Gate"
-                )
-                || (
-                    APGame.Instance.Data.Goal == 3
-                    && combinedName == "The Earl of Omonporch~Return to Grit Gate"
-                )
-                || (
-                    APGame.Instance.Data.Goal == 4
-                    && combinedName == "A Call to Arms~Defend Grit Gate"
-                )
-            )
-            {
-                APGame.Instance.SetGoalAchieved();
-            }
         }
+
         return base.HandleEvent(E);
     }
 }
