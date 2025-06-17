@@ -38,6 +38,12 @@ package: clean collect
 	zip -r "cavesofqud.apworld" cavesofqud
 
 .ONESHELL:
+.PHONY: test
+test:
+	cd Archipelago
+	pytest test/general
+
+.ONESHELL:
 .PHONY: clean
 clean:
 	rm -rf "bin/$(MOD_DIR_NAME)"
